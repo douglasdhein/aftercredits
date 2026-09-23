@@ -1,0 +1,11 @@
+# .NET
+**/bin/
+**/obj/
+
+# Visual Studio
+**/.vs/
+
+# Environment
+.env
+.env.*
+!.env.example
