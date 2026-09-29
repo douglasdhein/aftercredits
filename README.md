@@ -1,52 +1,86 @@
 # AfterCredits
 
-AfterCredits é uma aplicação web para descoberta e avaliação de filmes.
+AfterCredits is a web application for discovering, rating, and reviewing movies and TV shows.
 
-A proposta do projeto é permitir que usuários criem uma conta, pesquisem filmes, publiquem avaliações sobre os títulos que já assistiram e visualizem reviews compartilhadas por outros usuários.
+The project allows users to browse entertainment content, search for movies and TV shows, view detailed information, create an account, and publish reviews for titles they have watched.
 
-Os dados dos filmes serão obtidos através da API do [TMDB (The Movie Database)](https://www.themoviedb.org/).
+Movie and TV show data will be provided by the [TMDB API](https://www.themoviedb.org/), while user accounts and reviews will be managed by the AfterCredits backend.
 
-## Funcionalidades planejadas
+## Project Status
 
-- Cadastro e autenticação de usuários;
-- Pesquisa de filmes;
-- Listagem de filmes populares e em destaque;
-- Página com informações detalhadas de cada filme;
-- Criação, edição e exclusão de reviews;
-- Avaliação de filmes;
-- Visualização de reviews da comunidade;
-- Perfil de usuário;
-- Watchlist e filmes favoritos.
+🚧 This project is currently under development.
 
-Novas funcionalidades poderão ser adicionadas durante o desenvolvimento do projeto.
+AfterCredits is being developed as a learning and portfolio project, with a focus on building a full-stack application using React and ASP.NET Core.
 
-## Tecnologias
+## Planned Features
 
-### Front-end
+- Browse popular and trending movies;
+- Browse trending TV shows;
+- Search for movies and TV shows;
+- View detailed information about movies and TV shows;
+- Watch available trailers;
+- View cast information;
+- Discover similar movies and TV shows;
+- User registration and authentication;
+- Create, edit, and delete reviews;
+- Rate movies and TV shows;
+- View reviews from the AfterCredits community;
+- Light and dark themes.
+
+Additional features may be added as the project evolves.
+
+## Technologies
+
+### Frontend
 
 - React
 - TypeScript
 - Vite
 - Tailwind CSS
 - React Router
-- TanStack Query
 
-### Back-end
+### Backend
 
 - C#
 - ASP.NET Core Web API
 - Entity Framework Core
 
-### Banco de dados
+### Database
 
 - PostgreSQL
 
-### Serviços externos
+### External Services
 
 - TMDB API
 
-### Ferramentas
+### Tools
 
 - Git
 - GitHub
 - Docker
+
+## Architecture
+
+AfterCredits follows a simple client-server architecture.
+
+The React frontend communicates only with the ASP.NET Core API. The backend is responsible for application logic, database access, authentication, and communication with external services such as TMDB.
+
+```text
+┌─────────────────────┐
+│      Frontend       │
+│ React + TypeScript  │
+└──────────┬──────────┘
+           │
+           │ HTTP / JSON
+           ▼
+┌─────────────────────┐
+│       Backend       │
+│ ASP.NET Core Web API│
+└───────┬────────┬────┘
+        │        │
+        │        │
+        ▼        ▼
+┌────────────┐  ┌────────────┐
+│ PostgreSQL │  │  TMDB API  │
+└────────────┘  └────────────┘
+```
