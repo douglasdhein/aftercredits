@@ -1,9 +1,7 @@
+import { MainRouter } from './routers/MainRouter';
+
 function App() {
-  return (
-    <>
-      <h1>AfterCredits</h1>
-    </>
-  );
+  return <MainRouter />;
 }
 
 export default App;
