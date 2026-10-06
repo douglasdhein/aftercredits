@@ -1,8 +1,10 @@
+using AfterCredits.Api.Services;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers(); 
 builder.Services.AddOpenApi();
-
+builder.Services.AddHttpClient<TmdbService>();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
