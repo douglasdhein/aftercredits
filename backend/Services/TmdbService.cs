@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using AfterCredits.Api.DTOs.Tmdb;
 
 namespace AfterCredits.Api.Services;
 
@@ -26,7 +27,7 @@ public class TmdbService
             new AuthenticationHeaderValue("Bearer", accessToken);
     }
 
-    public async Task<string> GetPopularMoviesAsync()
+    public async Task<PopularMoviesResponseDto> GetPopularMoviesAsync()
     {
         var response = await _httpClient.GetAsync(
             "movie/popular?language=en-US"
@@ -34,9 +35,17 @@ public class TmdbService
 
         response.EnsureSuccessStatusCode();
 
-        var content = await response.Content.ReadAsStringAsync();
+        var movies =
+            await response.Content.ReadFromJsonAsync<PopularMoviesResponseDto>();
 
-        return content;
+        if (movies is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB popular movies response."
+            );
+        }
+
+        return movies;
     }
 }
 

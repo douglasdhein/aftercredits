@@ -19,6 +19,6 @@ public class MoviesController : ControllerBase
     {
         var movies = await _tmdbService.GetPopularMoviesAsync();
 
-        return Content(movies, "application/json");
+        return Ok(movies);
     }
 }
