@@ -1,24 +1,43 @@
 import { useEffect, useState } from 'react';
+import { getPopularMovies } from '../../services/movieService';
+import type { Movie } from '../../types/movie';
 
 export function Home() {
-  const [message, setMessage] = useState('');
+  const [movies, setMovies] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('https://localhost:7092/api/test')
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error('Failed to fetch API');
-        }
+    async function loadPopularMovies() {
+      try {
+        const data = await getPopularMovies();
 
-        return response.json();
-      })
-      .then((data) => {
-        setMessage(data.message);
-      })
-      .catch((error) => {
-        console.error(error);
-      });
+        setMovies(data.results);
+      } catch {
+        setError('Failed to load popular movies.');
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    loadPopularMovies();
   }, []);
 
-  return <h1>{message}</h1>;
+  if (isLoading) {
+    return <p>Loading...</p>;
+  }
+
+  if (error) {
+    return <p>{error}</p>;
+  }
+
+  return (
+    <section>
+      <h1>Popular Movies</h1>
+
+      {movies.map((movie) => (
+        <p key={movie.id}>{movie.title}</p>
+      ))}
+    </section>
+  );
 }
