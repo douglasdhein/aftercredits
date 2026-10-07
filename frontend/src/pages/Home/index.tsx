@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PopularMoviesCarousel } from '../../components/PopularMoviesCarousel';
 import { getPopularMovies } from '../../services/movieService';
 import type { Movie } from '../../types/movie';
 
@@ -32,12 +33,8 @@ export function Home() {
   }
 
   return (
-    <section>
-      <h1>Popular Movies</h1>
-
-      {movies.map((movie) => (
-        <p key={movie.id}>{movie.title}</p>
-      ))}
-    </section>
+    <div className="mx-auto max-w-7xl px-6 py-8">
+      <PopularMoviesCarousel movies={movies} />
+    </div>
   );
 }
