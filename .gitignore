@@ -2,8 +2,9 @@
 **/bin/
 **/obj/
 
-# Visual Studio
+# IDEs
 **/.vs/
+**/.idea/
 
 # Environment
 .env
