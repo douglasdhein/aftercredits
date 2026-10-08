@@ -9,7 +9,7 @@ export function Header() {
     'rounded-lg px-3 py-2 font-medium text-[#99949C] transition-colors hover:text-white';
 
   return (
-    <header className="relative z-20 border-b border-[#242124] bg-[#121012]">
+    <header className="sticky top-0 z-50 border-b border-[#242124] bg-[#121012]">
       <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
         <button
           type="button"
