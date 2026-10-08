@@ -32,9 +32,5 @@ export function Home() {
     return <p>{error}</p>;
   }
 
-  return (
-    <div className="mx-auto max-w-7xl px-6 py-8">
-      <PopularMoviesCarousel movies={movies} />
-    </div>
-  );
+  return <PopularMoviesCarousel movies={movies} />;
 }

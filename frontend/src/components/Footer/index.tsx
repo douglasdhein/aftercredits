@@ -8,7 +8,7 @@ export function Footer() {
             href="https://douglasdhein.dev"
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-[#F2EEF0] transition-colors hover:text-[#D6A640]"
+            className="font-medium text-[#F2EEF0] transition-colors hover:text-white"
           >
             Douglas Dhein
           </a>

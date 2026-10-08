@@ -4,11 +4,13 @@ import { MainRouter } from './routers/MainRouter';
 
 function App() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col bg-[#121012] text-[#F2EEF0]">
       <Header />
+
       <main className="flex-1">
         <MainRouter />
       </main>
+
       <Footer />
     </div>
   );

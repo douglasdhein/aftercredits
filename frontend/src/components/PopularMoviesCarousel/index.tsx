@@ -1,4 +1,4 @@
-import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
 import type { Movie } from '../../types/movie';
 
@@ -29,60 +29,76 @@ export function PopularMoviesCarousel({ movies }: PopularMoviesCarouselProps) {
     );
   }
 
+  function showMovie(index: number) {
+    setCurrentIndex(index);
+  }
+
   const backdropUrl = currentMovie.backdrop_path
     ? `https://image.tmdb.org/t/p/w1280${currentMovie.backdrop_path}`
     : null;
 
   return (
-    <section>
-      <h1 className="mb-4 text-2xl font-semibold text-[#F2EEF0]">
-        Popular Movies
-      </h1>
+    <section
+      className="relative h-130 w-full bg-cover sm:h-145 md:h-160 lg:h-175"
+      style={
+        backdropUrl
+          ? {
+              backgroundImage: `url(${backdropUrl})`,
+              backgroundPosition: 'center 35%',
+            }
+          : undefined
+      }
+    >
+      <div className="absolute inset-0 bg-linear-to-b from-[#121012]/5 via-[#121012]/25 to-[#121012]" />
 
-      <div
-        className="relative min-h-105 overflow-hidden rounded-xl bg-[#211D1A] bg-cover bg-center"
-        style={
-          backdropUrl ? { backgroundImage: `url(${backdropUrl})` } : undefined
-        }
-      >
-        <div className="absolute inset-0 bg-linear-to-r from-black/75 via-black/35 to-black/10" />
+      <div className="absolute inset-0 bg-linear-to-r from-[#121012]/50 via-transparent to-[#121012]/20" />
 
-        <div className="relative flex min-h-105 items-end px-16 py-8">
-          <div className="max-w-2xl">
-            <h2 className="text-3xl font-semibold text-white">
-              {currentMovie.title}
-            </h2>
-
-            <div className="mt-3 flex items-center gap-2 text-sm text-[#D6A640]">
-              <Star className="h-4 w-4" strokeWidth={1.5} />
-
-              <span>{currentMovie.vote_average.toFixed(1)}</span>
-            </div>
-
-            <p className="mt-4 leading-relaxed text-[#D0CCD1]">
-              {currentMovie.overview}
-            </p>
-          </div>
+      <div className="relative flex h-full items-end px-14 pb-20 sm:px-20 md:px-24 lg:px-28 lg:pb-24">
+        <div className="max-w-2xl">
+          <h1 className="text-xl leading-snug font-light text-[#F2EEF0] sm:text-2xl md:text-3xl">
+            Millions of movies, TV shows and people to discover. Explore now.
+          </h1>
         </div>
-
-        <button
-          type="button"
-          aria-label="Previous movie"
-          onClick={showPreviousMovie}
-          className="absolute top-1/2 left-4 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
-        >
-          <ChevronLeft className="h-5 w-5" />
-        </button>
-
-        <button
-          type="button"
-          aria-label="Next movie"
-          onClick={showNextMovie}
-          className="absolute top-1/2 right-4 flex h-10 w-10 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/40 text-white transition hover:bg-black/60"
-        >
-          <ChevronRight className="h-5 w-5" />
-        </button>
       </div>
+
+      <div className="absolute bottom-6 left-1/2 z-30 flex -translate-x-1/2 gap-3">
+        {carouselMovies.map((movie, index) => (
+          <button
+            key={movie.id}
+            type="button"
+            aria-label={`Slide ${index + 1}`}
+            aria-current={index === currentIndex}
+            onClick={() => showMovie(index)}
+            className={`h-2.5 w-2.5 cursor-pointer rounded-full transition-colors ${
+              index === currentIndex
+                ? 'bg-white'
+                : 'bg-white/40 hover:bg-white/70'
+            }`}
+          />
+        ))}
+      </div>
+
+      <button
+        type="button"
+        aria-label="Previous movie"
+        onClick={showPreviousMovie}
+        className="group absolute top-0 left-0 z-30 flex h-full cursor-pointer items-center justify-center px-4 focus:outline-none"
+      >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white transition group-hover:bg-black/50">
+          <ChevronLeft className="h-5 w-5" />
+        </span>
+      </button>
+
+      <button
+        type="button"
+        aria-label="Next movie"
+        onClick={showNextMovie}
+        className="group absolute top-0 right-0 z-30 flex h-full cursor-pointer items-center justify-center px-4 focus:outline-none"
+      >
+        <span className="flex h-10 w-10 items-center justify-center rounded-full bg-black/30 text-white transition group-hover:bg-black/50">
+          <ChevronRight className="h-5 w-5" />
+        </span>
+      </button>
     </section>
   );
 }
