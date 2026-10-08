@@ -47,5 +47,26 @@ public class TmdbService
 
         return movies;
     }
+
+    public async Task<TrendingTvShowsResponseDto> GetTrendingTvShowsAsync()
+    {
+        var response = await _httpClient.GetAsync(
+            "trending/tv/day?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var tvShows =
+            await response.Content.ReadFromJsonAsync<TrendingTvShowsResponseDto>();
+
+        if (tvShows is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB trending TV shows response."
+            );
+        }
+
+        return tvShows;
+    }
 }
 
