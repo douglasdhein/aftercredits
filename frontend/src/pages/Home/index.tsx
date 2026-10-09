@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
+import { MovieCard } from '../../components/MovieCard';
 import { PopularMoviesCarousel } from '../../components/PopularMoviesCarousel';
 import { TvShowCard } from '../../components/TvShowCard';
-import { MovieCard } from '../../components/MovieCard';
 import {
   getPopularMovies,
   getTrendingMovies,
@@ -47,12 +47,15 @@ export function Home() {
 
   return (
     <>
-      <PopularMoviesCarousel movies={movies} />
+      <section className="mx-auto w-full max-w-[1700px] px-6 pt-8">
+        <PopularMoviesCarousel movies={movies} />
+      </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12">
         <h2 className="mb-6 text-2xl font-light text-[#F2EEF0]">
           Trending Movies
         </h2>
+
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {trendingMovies.slice(0, 4).map((movie) => (
             <MovieCard key={movie.id} movie={movie} />
