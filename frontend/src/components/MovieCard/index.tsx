@@ -27,7 +27,7 @@ export function MovieCard({ movie }: MovieCardProps) {
           {movie.vote_average.toFixed(1)}
         </span>
 
-        <h3 className="mt-3 text-xl font-semibold text-[#F2EEF0]">
+        <h3 className="mt-3 text-xl font-light text-[#F2EEF0]">
           {movie.title}
         </h3>
 

@@ -50,7 +50,7 @@ export function Home() {
       <PopularMoviesCarousel movies={movies} />
 
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="mb-6 text-2xl font-semibold text-[#F2EEF0]">
+        <h2 className="mb-6 text-2xl font-light text-[#F2EEF0]">
           Trending Movies
         </h2>
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
@@ -61,7 +61,7 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="mb-6 text-2xl font-semibold text-[#F2EEF0]">
+        <h2 className="mb-6 text-2xl font-light text-[#F2EEF0]">
           Trending TV Shows
         </h2>
 
