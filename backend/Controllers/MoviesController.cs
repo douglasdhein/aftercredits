@@ -21,4 +21,12 @@ public class MoviesController : ControllerBase
 
         return Ok(movies);
     }
+
+    [HttpGet("trending")]
+    public async Task<IActionResult> GetTrendingMovies()
+    {
+        var movies = await _tmdbService.GetTrendingMoviesAsync();
+
+        return Ok(movies);
+    }
 }
