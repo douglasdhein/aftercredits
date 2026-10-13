@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from 'react-router';
 import type { Movie } from '../../types/movie';
 
 interface PopularMoviesCarouselProps {
@@ -70,19 +71,25 @@ export function PopularMoviesCarousel({ movies }: PopularMoviesCarouselProps) {
       </div>
 
       <div className="absolute top-1/2 left-1/2 z-20 aspect-video w-[calc(100%-2rem)] max-w-231 -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-[#242124] bg-[#121012] shadow-xl">
-        {getBackdropUrl(currentMovie) && (
-          <img
-            src={getBackdropUrl(currentMovie)!}
-            alt={currentMovie.title}
-            className="h-full w-full object-contain"
-          />
-        )}
+        <Link
+          to={`/movies/${currentMovie.id}`}
+          aria-label={`View details for ${currentMovie.title}`}
+          className="absolute inset-0 z-10 cursor-pointer"
+        >
+          {getBackdropUrl(currentMovie) && (
+            <img
+              src={getBackdropUrl(currentMovie)!}
+              alt={currentMovie.title}
+              className="h-full w-full object-contain"
+            />
+          )}
+        </Link>
 
-        <div className="absolute inset-0 bg-linear-to-b from-transparent via-transparent to-[#121012]/90" />
+        <div className="pointer-events-none absolute inset-0 z-20 bg-linear-to-b from-transparent via-transparent to-[#121012]/90" />
 
-        <div className="absolute inset-0 bg-linear-to-r from-[#121012]/40 via-transparent to-transparent" />
+        <div className="pointer-events-none absolute inset-0 z-20 bg-linear-to-r from-[#121012]/40 via-transparent to-transparent" />
 
-        <div className="absolute right-0 bottom-0 left-0 z-20 px-6 pb-12 sm:px-8 md:px-10">
+        <div className="pointer-events-none absolute right-0 bottom-0 left-0 z-20 px-6 pb-12 sm:px-8 md:px-10">
           <h1 className="max-w-2xl text-base leading-relaxed font-light text-[#F2EEF0] sm:text-lg md:text-xl">
             Millions of movies, TV shows and people to discover. Explore now.
           </h1>
@@ -105,7 +112,6 @@ export function PopularMoviesCarousel({ movies }: PopularMoviesCarouselProps) {
           ))}
         </div>
       </div>
-
       <button
         type="button"
         aria-label="Previous movie"
@@ -116,7 +122,6 @@ export function PopularMoviesCarousel({ movies }: PopularMoviesCarouselProps) {
           <ChevronLeft className="h-5 w-5" />
         </span>
       </button>
-
       <button
         type="button"
         aria-label="Next movie"
