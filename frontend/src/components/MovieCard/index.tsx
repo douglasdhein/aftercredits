@@ -1,6 +1,7 @@
 import { ArrowRight, Star } from 'lucide-react';
 import type { Movie } from '../../types/movie';
 import { formatDate } from '../../utils/formatDate';
+import { Link } from 'react-router';
 
 interface MovieCardProps {
   movie: Movie;
@@ -39,13 +40,13 @@ export function MovieCard({ movie }: MovieCardProps) {
           {formatDate(movie.release_date)}
         </p>
 
-        <button
-          type="button"
-          className="mt-5 inline-flex cursor-pointer items-center gap-2 rounded-lg border border-[#343034] px-4 py-2 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white"
+        <Link
+          to={`/movies/${movie.id}`}
+          className="mt-5 inline-flex items-center gap-2 rounded-lg border border-[#343034] px-4 py-2 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white"
         >
           View details
           <ArrowRight className="h-4 w-4" />
-        </button>
+        </Link>
       </div>
     </article>
   );
