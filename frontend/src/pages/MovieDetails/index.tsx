@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+import { Bookmark, Heart, MessageSquareText, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { getMovieDetails } from '../../services/movieService';
@@ -61,6 +61,12 @@ export function MovieDetails() {
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : null;
 
+  const actionButtonClasses =
+    'inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#343034] px-3 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white';
+
+  const genreClasses =
+    'inline-flex items-center rounded-md border border-[#343034] px-2 py-1 text-xs text-[#D0CCD1]';
+
   return (
     <section className="mx-auto w-full max-w-7xl px-6 py-12">
       <div className="rounded-xl border border-[#242124] bg-[#181518] p-6 md:p-8">
@@ -83,22 +89,36 @@ export function MovieDetails() {
               <span>{formatRuntime(movie.runtime)}</span>
             </div>
 
-            <div className="mt-4">
-              <span className="inline-flex items-center gap-1.5 rounded-md border border-[#4A391B] bg-[#2B2115] px-2 py-1 text-xs font-medium text-[#D6A640]">
-                <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
+            <div className="mt-4 flex flex-wrap gap-2">
+              {movie.genres.map((genre) => (
+                <span key={genre.id} className={genreClasses}>
+                  {genre.name}
+                </span>
+              ))}
+            </div>
+
+            <div className="mt-5">
+              <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#4A391B] bg-[#2B2115] px-3 text-sm font-medium text-[#D6A640]">
+                <Star className="h-4 w-4" strokeWidth={1.5} />
                 {movie.vote_average.toFixed(1)}
               </span>
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-2">
-              {movie.genres.map((genre) => (
-                <span
-                  key={genre.id}
-                  className="rounded-md border border-[#343034] px-3 py-1 text-xs text-[#D0CCD1]"
-                >
-                  {genre.name}
-                </span>
-              ))}
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button type="button" className={actionButtonClasses}>
+                <Heart className="h-4 w-4" strokeWidth={1.5} />
+                Favorite
+              </button>
+
+              <button type="button" className={actionButtonClasses}>
+                <Bookmark className="h-4 w-4" strokeWidth={1.5} />
+                Watchlist
+              </button>
+
+              <button type="button" className={actionButtonClasses}>
+                <MessageSquareText className="h-4 w-4" strokeWidth={1.5} />
+                Reviews
+              </button>
             </div>
 
             <div className="mt-8">
