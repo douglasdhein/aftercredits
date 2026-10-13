@@ -29,4 +29,12 @@ public class MoviesController : ControllerBase
 
         return Ok(movies);
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetMovieDetails(int id)
+    {
+        var movie = await _tmdbService.GetMovieDetailsAsync(id);
+
+        return Ok(movie);
+    }
 }

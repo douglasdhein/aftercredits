@@ -89,5 +89,26 @@ public class TmdbService
 
         return movies;
     }
+
+    public async Task<MovieDetailsDto> GetMovieDetailsAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"movie/{id}?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var movie =
+            await response.Content.ReadFromJsonAsync<MovieDetailsDto>();
+
+        if (movie is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB movie details response."
+            );
+        }
+
+        return movie;
+    }
 }
 
