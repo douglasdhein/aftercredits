@@ -110,5 +110,26 @@ public class TmdbService
 
         return movie;
     }
+
+    public async Task<TvShowDetailsDto> GetTvShowDetailsAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"tv/{id}?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var tvShow =
+            await response.Content.ReadFromJsonAsync<TvShowDetailsDto>();
+
+        if (tvShow is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB TV show details response."
+            );
+        }
+
+        return tvShow;
+    }
 }
 

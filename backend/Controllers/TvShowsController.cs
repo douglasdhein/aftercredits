@@ -21,4 +21,12 @@ public class TvShowsController : ControllerBase
 
         return Ok(tvShows);
     }
+
+    [HttpGet("{id:int}")]
+    public async Task<IActionResult> GetTvShowDetails(int id)
+    {
+        var tvShow = await _tmdbService.GetTvShowDetailsAsync(id);
+
+        return Ok(tvShow);
+    }
 }
