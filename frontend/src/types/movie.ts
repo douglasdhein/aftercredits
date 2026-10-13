@@ -1,4 +1,5 @@
 import type { Genre } from './genre';
+
 export interface Movie {
   id: number;
   title: string;
