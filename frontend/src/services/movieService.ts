@@ -35,3 +35,15 @@ export async function getMovieDetails(id: string): Promise<MovieDetails> {
 
   return response.json();
 }
+
+export async function getMovies(
+  page: number,
+): Promise<PopularMoviesResponse> {
+  const response = await fetch(`${API_URL}/movies?page=${page}`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch movies.');
+  }
+
+  return response.json();
+}
