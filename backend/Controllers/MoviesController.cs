@@ -37,4 +37,12 @@ public class MoviesController : ControllerBase
 
         return Ok(movie);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetMovies([FromQuery] int page = 1)
+    {
+        var movies = await _tmdbService.GetMoviesAsync(page);
+
+        return Ok(movies);
+    }
 }

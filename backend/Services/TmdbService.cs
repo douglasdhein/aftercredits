@@ -131,5 +131,26 @@ public class TmdbService
 
         return tvShow;
     }
+
+    public async Task<PopularMoviesResponseDto> GetMoviesAsync(int page)
+    {
+        var response = await _httpClient.GetAsync(
+            $"discover/movie?language=en-US&page={page}"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var movies =
+            await response.Content.ReadFromJsonAsync<PopularMoviesResponseDto>();
+
+        if (movies is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB movies response."
+            );
+        }
+
+        return movies;
+    }
 }
 
