@@ -1,4 +1,4 @@
-import { Bookmark, Heart, MessageSquareText, Star } from 'lucide-react';
+import { Bookmark, FileX2, Heart, MessageSquareText, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
 import { getTvShowDetails } from '../../services/tvShowService';
@@ -34,12 +34,12 @@ export function TvShowDetails() {
     loadTvShowDetails();
   }, [id]);
 
-  function formatEpisodeRuntime(episodeRunTime: number[]) {
-    if (episodeRunTime.length === 0) {
+  function formatEpisodeRuntime(runtime: number[]) {
+    if (runtime.length === 0) {
       return null;
     }
 
-    return `${episodeRunTime[0]}m per episode`;
+    return `${runtime[0]} min`;
   }
 
   if (isLoading) {
@@ -70,12 +70,16 @@ export function TvShowDetails() {
     <section className="mx-auto w-full max-w-7xl px-6 py-12">
       <div className="rounded-xl border border-[#242124] bg-[#181518] p-6 md:p-8">
         <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12">
-          {posterUrl && (
+          {posterUrl ? (
             <img
               src={posterUrl}
               alt={tvShow.name}
-              className="w-full rounded-lg object-cover"
+              className="aspect-2/3 w-full rounded-lg object-cover"
             />
+          ) : (
+            <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-[#242124] bg-[#121012]">
+              <FileX2 className="h-16 w-16 text-[#777278]" strokeWidth={0.5} />
+            </div>
           )}
 
           <div>
