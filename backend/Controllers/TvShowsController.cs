@@ -29,4 +29,12 @@ public class TvShowsController : ControllerBase
 
         return Ok(tvShow);
     }
+
+    [HttpGet]
+    public async Task<IActionResult> GetTvShows([FromQuery] int page = 1)
+    {
+        var tvShows = await _tmdbService.GetTvShowsAsync(page);
+
+        return Ok(tvShows);
+    }
 }
