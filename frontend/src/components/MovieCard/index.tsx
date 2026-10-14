@@ -23,18 +23,19 @@ export function MovieCard({ movie }: MovieCardProps) {
       )}
 
       <div className="mt-5 flex flex-1 flex-col">
-        <div>
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-[#4A391B] bg-[#2B2115] px-2 py-1 text-xs font-medium text-[#D6A640]">
-            <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
-            {movie.vote_average.toFixed(1)}
-          </span>
-        </div>
+        <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#4A391B] bg-[#2B2115] px-2 py-1 text-xs font-medium text-[#D6A640]">
+          <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
+          {movie.vote_average.toFixed(1)}
+        </span>
 
-        <h2 className="mt-4 line-clamp-2 text-lg font-light text-[#F2EEF0]">
+        <h2
+          title={movie.title}
+          className="mt-4 truncate text-lg font-light text-[#F2EEF0]"
+        >
           {movie.title}
         </h2>
 
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-[#99949C]">
+        <p className="mt-2 h-18 line-clamp-3 text-sm leading-6 text-[#99949C]">
           {movie.overview || 'No overview available.'}
         </p>
 
