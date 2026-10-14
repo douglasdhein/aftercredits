@@ -1,4 +1,4 @@
-import { ArrowRight, Star } from 'lucide-react';
+import { ArrowRight, FileX2, Star } from 'lucide-react';
 import { Link } from 'react-router';
 import type { Movie } from '../../types/movie';
 import { formatDate } from '../../utils/formatDate';
@@ -12,20 +12,26 @@ export function MovieCard({ movie }: MovieCardProps) {
     ? `https://image.tmdb.org/t/p/w500${movie.poster_path}`
     : null;
 
+  const rating = movie.vote_average ? movie.vote_average.toFixed(1) : '0';
+
   return (
     <article className="flex h-full flex-col rounded-xl border border-[#242124] bg-[#181518] p-4">
-      {posterUrl && (
+      {posterUrl ? (
         <img
           src={posterUrl}
           alt={movie.title}
           className="aspect-2/3 w-full rounded-lg object-cover"
         />
+      ) : (
+        <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-[#242124] bg-[#121012]">
+          <FileX2 className="h-12 w-12 text-[#777278]" strokeWidth={1.5} />
+        </div>
       )}
 
       <div className="mt-5 flex flex-1 flex-col">
         <span className="inline-flex w-fit items-center gap-1.5 rounded-md border border-[#4A391B] bg-[#2B2115] px-2 py-1 text-xs font-medium text-[#D6A640]">
           <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
-          {movie.vote_average.toFixed(1)}
+          {rating}
         </span>
 
         <h2
