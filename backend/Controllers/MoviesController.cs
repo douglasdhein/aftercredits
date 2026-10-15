@@ -45,4 +45,17 @@ public class MoviesController : ControllerBase
 
         return Ok(movies);
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchMovies([FromQuery] string query)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest("Search query is required.");
+        }
+
+        var movies = await _tmdbService.SearchMoviesAsync(query);
+
+        return Ok(movies);
+    }
 }
