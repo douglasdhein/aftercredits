@@ -174,12 +174,15 @@ public class TmdbService
         return tvShows;
     }
 
-    public async Task<PopularMoviesResponseDto> SearchMoviesAsync(string query)
+    public async Task<PopularMoviesResponseDto> SearchMoviesAsync(
+        string query,
+        int page
+    )
     {
         var encodedQuery = Uri.EscapeDataString(query);
 
         var response = await _httpClient.GetAsync(
-            $"search/movie?query={encodedQuery}&include_adult=false&language=en-US&page=1"
+            $"search/movie?query={encodedQuery}&include_adult=false&language=en-US&page={page}"
         );
 
         response.EnsureSuccessStatusCode();

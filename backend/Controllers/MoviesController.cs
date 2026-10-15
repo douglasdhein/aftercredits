@@ -47,14 +47,22 @@ public class MoviesController : ControllerBase
     }
 
     [HttpGet("search")]
-    public async Task<IActionResult> SearchMovies([FromQuery] string query)
+    public async Task<IActionResult> SearchMovies(
+        [FromQuery] string query,
+        [FromQuery] int page = 1
+    )
     {
         if (string.IsNullOrWhiteSpace(query))
         {
             return BadRequest("Search query is required.");
         }
 
-        var movies = await _tmdbService.SearchMoviesAsync(query);
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than zero.");
+        }
+
+        var movies = await _tmdbService.SearchMoviesAsync(query, page);
 
         return Ok(movies);
     }

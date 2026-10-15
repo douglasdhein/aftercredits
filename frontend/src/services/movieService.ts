@@ -47,3 +47,18 @@ export async function getMovies(
 
   return response.json();
 }
+
+export async function searchMovies(
+  query: string,
+  page: number = 1,
+): Promise<PopularMoviesResponse> {
+  const response = await fetch(
+    `${API_URL}/movies/search?query=${encodeURIComponent(query)}&page=${page}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to search movies.');
+  }
+
+  return response.json();
+}
