@@ -2,13 +2,16 @@ import { FileX2, Menu, Search, UserRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { searchMovies } from '../../services/movieService';
+import { searchTvShows } from '../../services/tvShowService';
 import type { Movie } from '../../types/movie';
+import type { TvShow } from '../../types/tvShow';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState<Movie[]>([]);
+  const [movieResults, setMovieResults] = useState<Movie[]>([]);
+  const [tvShowResults, setTvShowResults] = useState<TvShow[]>([]);
   const [hasMoreResults, setHasMoreResults] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
@@ -27,16 +30,24 @@ export function Header() {
 
     const timeout = setTimeout(async () => {
       try {
-        const data = await searchMovies(query);
+        const [moviesData, tvShowsData] = await Promise.all([
+          searchMovies(query),
+          searchTvShows(query),
+        ]);
 
         if (isCurrentSearch) {
-          setSearchResults(data.results.slice(0, 3));
-          setHasMoreResults(data.total_results > 3);
+          setMovieResults(moviesData.results.slice(0, 3));
+          setTvShowResults(tvShowsData.results.slice(0, 3));
+
+          setHasMoreResults(
+            moviesData.total_results > 3 || tvShowsData.total_results > 3,
+          );
         }
       } catch {
         if (isCurrentSearch) {
-          setSearchError('Failed to search movies.');
-          setSearchResults([]);
+          setSearchError('Failed to search.');
+          setMovieResults([]);
+          setTvShowResults([]);
           setHasMoreResults(false);
         }
       } finally {
@@ -60,7 +71,8 @@ export function Header() {
   function closeSearch() {
     setIsSearchOpen(false);
     setSearchQuery('');
-    setSearchResults([]);
+    setMovieResults([]);
+    setTvShowResults([]);
     setHasMoreResults(false);
     setSearchError('');
     setIsSearching(false);
@@ -68,7 +80,8 @@ export function Header() {
 
   function handleSearchChange(value: string) {
     setSearchQuery(value);
-    setSearchResults([]);
+    setMovieResults([]);
+    setTvShowResults([]);
     setHasMoreResults(false);
     setSearchError('');
     setIsSearching(value.trim().length >= 2);
@@ -164,7 +177,7 @@ export function Header() {
 
       {isSearchOpen && (
         <div className="fixed inset-0 z-60 flex items-start justify-center bg-black/60 px-6 pt-24">
-          <div className="w-full max-w-xl rounded-xl border border-[#242124] bg-[#181518] p-5">
+          <div className="custom-scrollbar max-h-[calc(100vh-8rem)] w-full max-w-xl overflow-y-auto rounded-xl border border-[#242124] bg-[#181518] p-5">
             <div className="flex items-center gap-3">
               <Search
                 className="h-5 w-5 shrink-0 text-[#99949C]"
@@ -175,7 +188,7 @@ export function Header() {
                 type="text"
                 value={searchQuery}
                 onChange={(event) => handleSearchChange(event.target.value)}
-                placeholder="Search movies..."
+                placeholder="Search movies and TV shows..."
                 autoFocus
                 className="w-full bg-transparent text-[#F2EEF0] outline-none placeholder:text-[#777278]"
               />
@@ -201,14 +214,19 @@ export function Header() {
             {!isSearching &&
               !searchError &&
               searchQuery.trim().length >= 2 &&
-              searchResults.length === 0 && (
-                <p className="mt-5 text-sm text-[#99949C]">No movies found.</p>
+              movieResults.length === 0 &&
+              tvShowResults.length === 0 && (
+                <p className="mt-5 text-sm text-[#99949C]">No results found.</p>
               )}
 
-            {searchResults.length > 0 && (
-              <>
-                <div className="mt-5 flex flex-col gap-3">
-                  {searchResults.map((movie) => {
+            {movieResults.length > 0 && (
+              <div className="mt-5">
+                <h2 className="mb-3 text-sm font-medium text-[#99949C]">
+                  Movies
+                </h2>
+
+                <div className="flex flex-col gap-3">
+                  {movieResults.map((movie) => {
                     const posterUrl = movie.poster_path
                       ? `https://image.tmdb.org/t/p/w200${movie.poster_path}`
                       : null;
@@ -250,20 +268,71 @@ export function Header() {
                     );
                   })}
                 </div>
-
-                {hasMoreResults && (
-                  <Link
-                    to={`/search?query=${encodeURIComponent(
-                      searchQuery.trim(),
-                    )}`}
-                    onClick={closeSearch}
-                    className="mt-4 flex w-full items-center justify-center rounded-lg border border-[#343034] px-4 py-2.5 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white"
-                  >
-                    View all results
-                  </Link>
-                )}
-              </>
+              </div>
             )}
+
+            {tvShowResults.length > 0 && (
+              <div className="mt-5">
+                <h2 className="mb-3 text-sm font-medium text-[#99949C]">
+                  TV Shows
+                </h2>
+
+                <div className="flex flex-col gap-3">
+                  {tvShowResults.map((tvShow) => {
+                    const posterUrl = tvShow.poster_path
+                      ? `https://image.tmdb.org/t/p/w200${tvShow.poster_path}`
+                      : null;
+
+                    return (
+                      <Link
+                        key={tvShow.id}
+                        to={`/tv-shows/${tvShow.id}`}
+                        onClick={closeSearch}
+                        className="flex items-center gap-4 rounded-lg border border-[#242124] bg-[#121012] p-3 transition-colors hover:border-[#343034] hover:bg-[#242124]"
+                      >
+                        {posterUrl ? (
+                          <img
+                            src={posterUrl}
+                            alt={tvShow.name}
+                            className="h-18 w-12 shrink-0 rounded-md object-cover"
+                          />
+                        ) : (
+                          <div className="flex h-18 w-12 shrink-0 items-center justify-center rounded-md border border-[#343034] bg-[#181518]">
+                            <FileX2
+                              className="h-5 w-5 text-[#777278]"
+                              strokeWidth={1.5}
+                            />
+                          </div>
+                        )}
+
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-[#F2EEF0]">
+                            {tvShow.name}
+                          </p>
+
+                          <p className="mt-1 text-sm text-[#99949C]">
+                            {tvShow.first_air_date
+                              ? tvShow.first_air_date.slice(0, 4)
+                              : 'First air date unavailable'}
+                          </p>
+                        </div>
+                      </Link>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {(movieResults.length > 0 || tvShowResults.length > 0) &&
+              hasMoreResults && (
+                <Link
+                  to={`/search?query=${encodeURIComponent(searchQuery.trim())}`}
+                  onClick={closeSearch}
+                  className="mt-4 flex w-full items-center justify-center rounded-lg border border-[#343034] px-4 py-2.5 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white"
+                >
+                  View all results
+                </Link>
+              )}
           </div>
         </div>
       )}

@@ -38,3 +38,18 @@ export async function getTvShows(
 
   return response.json();
 }
+
+export async function searchTvShows(
+  query: string,
+  page: number = 1,
+): Promise<TrendingTvShowsResponse> {
+  const response = await fetch(
+    `${API_URL}/tv-shows/search?query=${encodeURIComponent(query)}&page=${page}`,
+  );
+
+  if (!response.ok) {
+    throw new Error('Failed to search TV shows.');
+  }
+
+  return response.json();
+}
