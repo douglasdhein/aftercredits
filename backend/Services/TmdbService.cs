@@ -199,5 +199,31 @@ public class TmdbService
 
         return movies;
     }
+
+    public async Task<TrendingTvShowsResponseDto> SearchTvShowsAsync(
+    string query,
+    int page
+)
+    {
+        var encodedQuery = Uri.EscapeDataString(query);
+
+        var response = await _httpClient.GetAsync(
+            $"search/tv?query={encodedQuery}&include_adult=false&language=en-US&page={page}"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var tvShows =
+            await response.Content.ReadFromJsonAsync<TrendingTvShowsResponseDto>();
+
+        if (tvShows is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB TV show search response."
+            );
+        }
+
+        return tvShows;
+    }
 }
 

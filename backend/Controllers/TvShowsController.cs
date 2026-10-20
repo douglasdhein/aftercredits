@@ -37,4 +37,25 @@ public class TvShowsController : ControllerBase
 
         return Ok(tvShows);
     }
+
+    [HttpGet("search")]
+    public async Task<IActionResult> SearchTvShows(
+    [FromQuery] string query,
+    [FromQuery] int page = 1
+)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return BadRequest("Search query is required.");
+        }
+
+        if (page < 1)
+        {
+            return BadRequest("Page must be greater than zero.");
+        }
+
+        var tvShows = await _tmdbService.SearchTvShowsAsync(query, page);
+
+        return Ok(tvShows);
+    }
 }
