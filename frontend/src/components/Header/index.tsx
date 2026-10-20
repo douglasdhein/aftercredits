@@ -1,10 +1,12 @@
-import { FileX2, Menu, Search, UserRound, X } from 'lucide-react';
+import { FileX2, Menu, Moon, Search, Sun, UserRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { searchMovies } from '../../services/movieService';
 import { searchTvShows } from '../../services/tvShowService';
 import type { Movie } from '../../types/movie';
 import type { TvShow } from '../../types/tvShow';
+
+type Theme = 'dark' | 'light';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,8 +18,20 @@ export function Header() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchError, setSearchError] = useState('');
 
+  const [theme, setTheme] = useState<Theme>(() => {
+    const savedTheme = localStorage.getItem('aftercredits-theme');
+
+    return savedTheme === 'light' ? 'light' : 'dark';
+  });
+
   const navLinkClasses =
-    'rounded-lg px-3 py-2 font-medium text-[#99949C] transition-colors hover:text-white';
+    'rounded-lg px-3 py-2 font-medium text-(--text-secondary) transition-colors hover:text-(--text-primary)';
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+
+    localStorage.setItem('aftercredits-theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     const query = searchQuery.trim();
@@ -87,16 +101,20 @@ export function Header() {
     setIsSearching(value.trim().length >= 2);
   }
 
+  function toggleTheme() {
+    setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
+  }
+
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-[#242124] bg-[#121012]">
+      <header className="sticky top-0 z-50 border-b border-(--border) bg-(--header-background) transition-colors">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-6">
           <button
             type="button"
             aria-label="Open navigation menu"
             aria-expanded={isMenuOpen}
             onClick={() => setIsMenuOpen((prev) => !prev)}
-            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-[#99949C] transition-colors hover:text-white md:hidden"
+            className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary) md:hidden"
           >
             <Menu className="h-5 w-5" strokeWidth={1.5} />
           </button>
@@ -119,7 +137,7 @@ export function Header() {
             <button
               type="button"
               onClick={openSearch}
-              className="hidden cursor-pointer items-center gap-2 px-2 py-2 text-sm font-medium text-[#99949C] transition-colors hover:text-white md:flex"
+              className="hidden cursor-pointer items-center gap-2 px-2 py-2 text-sm font-medium text-(--text-secondary) transition-colors hover:text-(--text-primary) md:flex"
             >
               <Search className="h-5 w-5" strokeWidth={1.5} />
               <span>Search</span>
@@ -127,8 +145,25 @@ export function Header() {
 
             <button
               type="button"
+              aria-label={
+                theme === 'dark'
+                  ? 'Switch to light theme'
+                  : 'Switch to dark theme'
+              }
+              onClick={toggleTheme}
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) hover:text-(--text-primary)"
+            >
+              {theme === 'dark' ? (
+                <Sun className="h-5 w-5" strokeWidth={1.5} />
+              ) : (
+                <Moon className="h-5 w-5" strokeWidth={1.5} />
+              )}
+            </button>
+
+            <button
+              type="button"
               aria-label="Login"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-[#99949C] transition-colors hover:text-white"
+              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary)"
             >
               <UserRound className="h-5 w-5" strokeWidth={1.5} />
             </button>
@@ -136,7 +171,7 @@ export function Header() {
         </div>
 
         {isMenuOpen && (
-          <nav className="border-t border-[#242124] bg-[#121012] px-6 py-4 md:hidden">
+          <nav className="border-t border-(--border) bg-(--header-background) px-6 py-4 md:hidden">
             <div className="flex flex-col gap-2">
               <Link
                 to="/"
@@ -165,7 +200,7 @@ export function Header() {
               <button
                 type="button"
                 onClick={openSearch}
-                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left font-medium text-[#99949C] transition-colors hover:text-white"
+                className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left font-medium text-(--text-secondary) transition-colors hover:text-(--text-primary)"
               >
                 <Search className="h-5 w-5" strokeWidth={1.5} />
                 <span>Search</span>
@@ -176,11 +211,11 @@ export function Header() {
       </header>
 
       {isSearchOpen && (
-        <div className="fixed inset-0 z-60 flex items-start justify-center bg-black/60 px-6 pt-24">
-          <div className="custom-scrollbar max-h-[calc(100vh-8rem)] w-full max-w-xl overflow-y-auto rounded-xl border border-[#242124] bg-[#181518] p-5">
+        <div className="fixed inset-0 z-60 flex items-start justify-center bg-(--overlay) px-6 pt-24">
+          <div className="custom-scrollbar max-h-[calc(100vh-8rem)] w-full max-w-xl overflow-y-auto rounded-xl border border-(--border) bg-(--surface) p-5 transition-colors">
             <div className="flex items-center gap-3">
               <Search
-                className="h-5 w-5 shrink-0 text-[#99949C]"
+                className="h-5 w-5 shrink-0 text-(--text-secondary)"
                 strokeWidth={1.5}
               />
 
@@ -190,25 +225,29 @@ export function Header() {
                 onChange={(event) => handleSearchChange(event.target.value)}
                 placeholder="Search movies and TV shows..."
                 autoFocus
-                className="w-full bg-transparent text-[#F2EEF0] outline-none placeholder:text-[#777278]"
+                className="w-full bg-transparent text-(--text-primary) outline-none placeholder:text-(--text-tertiary)"
               />
 
               <button
                 type="button"
                 aria-label="Close search"
                 onClick={closeSearch}
-                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-[#99949C] transition-colors hover:bg-[#242124] hover:text-white"
+                className="flex h-9 w-9 shrink-0 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)"
               >
                 <X className="h-5 w-5" strokeWidth={1.5} />
               </button>
             </div>
 
             {isSearching && (
-              <p className="mt-5 text-sm text-[#99949C]">Searching...</p>
+              <p className="mt-5 text-sm text-(--text-secondary)">
+                Searching...
+              </p>
             )}
 
             {searchError && (
-              <p className="mt-5 text-sm text-[#99949C]">{searchError}</p>
+              <p className="mt-5 text-sm text-(--text-secondary)">
+                {searchError}
+              </p>
             )}
 
             {!isSearching &&
@@ -216,12 +255,14 @@ export function Header() {
               searchQuery.trim().length >= 2 &&
               movieResults.length === 0 &&
               tvShowResults.length === 0 && (
-                <p className="mt-5 text-sm text-[#99949C]">No results found.</p>
+                <p className="mt-5 text-sm text-(--text-secondary)">
+                  No results found.
+                </p>
               )}
 
             {movieResults.length > 0 && (
               <div className="mt-5">
-                <h2 className="mb-3 text-sm font-medium text-[#99949C]">
+                <h2 className="mb-3 text-sm font-medium text-(--text-secondary)">
                   Movies
                 </h2>
 
@@ -236,7 +277,7 @@ export function Header() {
                         key={movie.id}
                         to={`/movies/${movie.id}`}
                         onClick={closeSearch}
-                        className="flex items-center gap-4 rounded-lg border border-[#242124] bg-[#121012] p-3 transition-colors hover:border-[#343034] hover:bg-[#242124]"
+                        className="flex items-center gap-4 rounded-lg border border-(--border) bg-(--surface-secondary) p-3 transition-colors hover:border-(--border-strong) hover:bg-(--surface-hover)"
                       >
                         {posterUrl ? (
                           <img
@@ -245,20 +286,20 @@ export function Header() {
                             className="h-18 w-12 shrink-0 rounded-md object-cover"
                           />
                         ) : (
-                          <div className="flex h-18 w-12 shrink-0 items-center justify-center rounded-md border border-[#343034] bg-[#181518]">
+                          <div className="flex h-18 w-12 shrink-0 items-center justify-center rounded-md border border-(--border-strong) bg-(--surface)">
                             <FileX2
-                              className="h-5 w-5 text-[#777278]"
+                              className="h-5 w-5 text-(--text-tertiary)"
                               strokeWidth={1.5}
                             />
                           </div>
                         )}
 
                         <div className="min-w-0">
-                          <p className="truncate font-medium text-[#F2EEF0]">
+                          <p className="truncate font-medium text-(--text-primary)">
                             {movie.title}
                           </p>
 
-                          <p className="mt-1 text-sm text-[#99949C]">
+                          <p className="mt-1 text-sm text-(--text-secondary)">
                             {movie.release_date
                               ? movie.release_date.slice(0, 4)
                               : 'Release date unavailable'}
@@ -273,7 +314,7 @@ export function Header() {
 
             {tvShowResults.length > 0 && (
               <div className="mt-5">
-                <h2 className="mb-3 text-sm font-medium text-[#99949C]">
+                <h2 className="mb-3 text-sm font-medium text-(--text-secondary)">
                   TV Shows
                 </h2>
 
@@ -288,7 +329,7 @@ export function Header() {
                         key={tvShow.id}
                         to={`/tv-shows/${tvShow.id}`}
                         onClick={closeSearch}
-                        className="flex items-center gap-4 rounded-lg border border-[#242124] bg-[#121012] p-3 transition-colors hover:border-[#343034] hover:bg-[#242124]"
+                        className="flex items-center gap-4 rounded-lg border border-(--border) bg-(--surface-secondary) p-3 transition-colors hover:border-(--border-strong) hover:bg-(--surface-hover)"
                       >
                         {posterUrl ? (
                           <img
@@ -297,20 +338,20 @@ export function Header() {
                             className="h-18 w-12 shrink-0 rounded-md object-cover"
                           />
                         ) : (
-                          <div className="flex h-18 w-12 shrink-0 items-center justify-center rounded-md border border-[#343034] bg-[#181518]">
+                          <div className="flex h-18 w-12 shrink-0 items-center justify-center rounded-md border border-(--border-strong) bg-(--surface)">
                             <FileX2
-                              className="h-5 w-5 text-[#777278]"
+                              className="h-5 w-5 text-(--text-tertiary)"
                               strokeWidth={1.5}
                             />
                           </div>
                         )}
 
                         <div className="min-w-0">
-                          <p className="truncate font-medium text-[#F2EEF0]">
+                          <p className="truncate font-medium text-(--text-primary)">
                             {tvShow.name}
                           </p>
 
-                          <p className="mt-1 text-sm text-[#99949C]">
+                          <p className="mt-1 text-sm text-(--text-secondary)">
                             {tvShow.first_air_date
                               ? tvShow.first_air_date.slice(0, 4)
                               : 'First air date unavailable'}
@@ -328,7 +369,7 @@ export function Header() {
                 <Link
                   to={`/search?query=${encodeURIComponent(searchQuery.trim())}`}
                   onClick={closeSearch}
-                  className="mt-4 flex w-full items-center justify-center rounded-lg border border-[#343034] px-4 py-2.5 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white"
+                  className="mt-4 flex w-full items-center justify-center rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover)"
                 >
                   View all results
                 </Link>

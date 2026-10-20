@@ -30,11 +30,13 @@ export function Movies() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-6 py-12">
-      <h1 className="mb-8 text-3xl font-light text-[#F2EEF0]">Movies</h1>
+      <h1 className="mb-8 text-3xl font-light text-(--text-primary)">Movies</h1>
 
-      {isLoading && <p className="text-[#99949C]">Loading movies...</p>}
+      {isLoading && (
+        <p className="text-(--text-secondary)">Loading movies...</p>
+      )}
 
-      {error && <p className="text-[#99949C]">{error}</p>}
+      {error && <p className="text-(--text-secondary)">{error}</p>}
 
       {!isLoading && !error && (
         <>
@@ -52,8 +54,8 @@ export function Movies() {
                 onClick={() => setCurrentPage(page)}
                 className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
                   currentPage === page
-                    ? 'border-[#4A391B] bg-[#2B2115] text-[#D6A640]'
-                    : 'border-[#242124] bg-[#121012] text-[#99949C] hover:bg-[#242124] hover:text-white'
+                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                    : 'border-(--border) bg-(--surface-secondary) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                 }`}
               >
                 {page}

@@ -38,11 +38,11 @@ export function Home() {
   }, []);
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return <p className="px-6 py-12 text-(--text-secondary)">Loading...</p>;
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="px-6 py-12 text-(--text-secondary)">{error}</p>;
   }
 
   return (
@@ -52,7 +52,7 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="mb-6 text-2xl font-light text-[#F2EEF0]">
+        <h2 className="mb-6 text-2xl font-light text-(--text-primary)">
           Trending Movies
         </h2>
 
@@ -64,7 +64,7 @@ export function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-6 py-12">
-        <h2 className="mb-6 text-2xl font-light text-[#F2EEF0]">
+        <h2 className="mb-6 text-2xl font-light text-(--text-primary)">
           Trending TV Shows
         </h2>
 

@@ -43,11 +43,11 @@ export function TvShowDetails() {
   }
 
   if (isLoading) {
-    return <p>Loading...</p>;
+    return <p className="px-6 py-12 text-(--text-secondary)">Loading...</p>;
   }
 
   if (error) {
-    return <p>{error}</p>;
+    return <p className="px-6 py-12 text-(--text-secondary)">{error}</p>;
   }
 
   if (!tvShow) {
@@ -61,14 +61,14 @@ export function TvShowDetails() {
   const episodeRuntime = formatEpisodeRuntime(tvShow.episode_run_time);
 
   const actionButtonClasses =
-    'inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-[#343034] px-3 text-sm font-medium text-[#D0CCD1] transition-colors hover:bg-[#242124] hover:text-white';
+    'inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-3 text-sm font-medium text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)';
 
   const genreClasses =
-    'inline-flex items-center rounded-md border border-[#343034] px-2 py-1 text-xs text-[#D0CCD1]';
+    'inline-flex items-center rounded-md border border-(--border-strong) px-2 py-1 text-xs text-(--text-secondary)';
 
   return (
     <section className="mx-auto w-full max-w-7xl px-6 py-12">
-      <div className="rounded-xl border border-[#242124] bg-[#181518] p-6 md:p-8">
+      <div className="rounded-xl border border-(--border) bg-(--surface) p-6 transition-colors md:p-8">
         <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12">
           {posterUrl ? (
             <img
@@ -77,17 +77,20 @@ export function TvShowDetails() {
               className="aspect-2/3 w-full rounded-lg object-cover"
             />
           ) : (
-            <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-[#242124] bg-[#121012]">
-              <FileX2 className="h-16 w-16 text-[#777278]" strokeWidth={0.5} />
+            <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-(--border) bg-(--surface-secondary)">
+              <FileX2
+                className="h-16 w-16 text-(--text-tertiary)"
+                strokeWidth={1.5}
+              />
             </div>
           )}
 
           <div>
-            <h1 className="text-3xl font-light text-[#F2EEF0] md:text-4xl">
+            <h1 className="text-3xl font-light text-(--text-primary) md:text-4xl">
               {tvShow.name}
             </h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#99949C]">
+            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-(--text-secondary)">
               <span>{formatDate(tvShow.first_air_date)}</span>
 
               <span>
@@ -112,7 +115,7 @@ export function TvShowDetails() {
             </div>
 
             <div className="mt-5">
-              <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-[#4A391B] bg-[#2B2115] px-3 text-sm font-medium text-[#D6A640]">
+              <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-(--rating-border) bg-(--rating-background) px-3 text-sm font-medium text-(--rating-text)">
                 <Star className="h-4 w-4" strokeWidth={1.5} />
                 {tvShow.vote_average.toFixed(1)}
               </span>
@@ -136,9 +139,11 @@ export function TvShowDetails() {
             </div>
 
             <div className="mt-8">
-              <h2 className="text-xl font-light text-[#F2EEF0]">Overview</h2>
+              <h2 className="text-xl font-light text-(--text-primary)">
+                Overview
+              </h2>
 
-              <p className="mt-3 max-w-3xl leading-relaxed text-[#99949C]">
+              <p className="mt-3 max-w-3xl leading-relaxed text-(--text-secondary)">
                 {tvShow.overview || 'No overview available.'}
               </p>
             </div>

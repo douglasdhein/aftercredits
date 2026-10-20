@@ -4,7 +4,7 @@ import { MainRouter } from './routers/MainRouter';
 
 function App() {
   return (
-    <div className="flex min-h-screen flex-col bg-[#121012] text-[#F2EEF0]">
+    <div className="flex min-h-screen flex-col bg-(--background) text-(--text-primary) transition-colors">
       <Header />
 
       <main className="flex-1">

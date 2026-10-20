@@ -1,13 +1,81 @@
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600;700&display=swap');
 @import 'tailwindcss';
 
+:root {
+  color-scheme: dark;
+
+  --background: #0d0b0d;
+  --header-background: #121012;
+
+  --surface: #181518;
+  --surface-secondary: #121012;
+  --surface-hover: #242124;
+
+  --border: #242124;
+  --border-strong: #343034;
+
+  --text-primary: #f2eef0;
+  --text-secondary: #99949c;
+  --text-tertiary: #777278;
+
+  --rating-background: #2b2115;
+  --rating-border: #4a391b;
+  --rating-text: #d6a640;
+
+  --overlay: rgb(0 0 0 / 60%);
+
+  --scrollbar-track: #121012;
+  --scrollbar-thumb: #343034;
+  --scrollbar-thumb-hover: #4a474a;
+}
+
+:root[data-theme='light'] {
+  color-scheme: light;
+
+  --background: #e4dfda;
+  --header-background: #ebe7e3;
+
+  --surface: #f3f1ee;
+  --surface-secondary: #dbd5d0;
+  --surface-hover: #d2ccc7;
+
+  --border: #d1cbc6;
+  --border-strong: #beb7b1;
+
+  --text-primary: #252225;
+  --text-secondary: #6f696e;
+  --text-tertiary: #8c868a;
+
+  --rating-background: #d6a640;
+  --rating-border: #b78a2b;
+  --rating-text: #fff8e7;
+
+  --overlay: rgb(37 34 37 / 35%);
+
+  --scrollbar-track: #e4dfda;
+  --scrollbar-thumb: #b8b0aa;
+  --scrollbar-thumb-hover: #9f9791;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
 body {
+  margin: 0;
+  background: var(--background);
+  color: var(--text-primary);
   font-family: 'Source Sans 3', sans-serif;
+  transition:
+    background-color 200ms ease,
+    color 200ms ease;
 }
 
 .custom-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #343034 #121012;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
 }
 
 .custom-scrollbar::-webkit-scrollbar {
@@ -15,16 +83,16 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
-  background: #121012;
+  background: var(--scrollbar-track);
   border-radius: 999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: #343034;
-  border: 2px solid #121012;
+  background: var(--scrollbar-thumb);
+  border: 2px solid var(--scrollbar-track);
   border-radius: 999px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: #4a474a;
+  background: var(--scrollbar-thumb-hover);
 }

@@ -83,7 +83,7 @@ export function Search() {
   if (!query) {
     return (
       <section className="mx-auto w-full max-w-7xl px-6 py-12">
-        <p className="text-[#99949C]">No search query provided.</p>
+        <p className="text-(--text-secondary)">No search query provided.</p>
       </section>
     );
   }
@@ -98,18 +98,22 @@ export function Search() {
 
   return (
     <section className="mx-auto w-full max-w-7xl px-6 py-12">
-      <h1 className="text-3xl font-light text-[#F2EEF0]">Search results</h1>
+      <h1 className="text-3xl font-light text-(--text-primary)">
+        Search results
+      </h1>
 
-      <p className="mt-2 text-[#99949C]">Results for &quot;{query}&quot;</p>
+      <p className="mt-2 text-(--text-secondary)">
+        Results for &quot;{query}&quot;
+      </p>
 
-      <div className="mt-6 inline-flex gap-2 rounded-lg border border-[#242124] bg-[#121012] p-1">
+      <div className="mt-6 inline-flex gap-2 rounded-lg border border-(--border) bg-(--surface-secondary) p-1">
         <button
           type="button"
           onClick={() => changeType('movies')}
           className={`cursor-pointer rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             selectedType === 'movies'
-              ? 'bg-[#242124] text-white'
-              : 'text-[#99949C] hover:bg-[#242124] hover:text-white'
+              ? 'bg-(--surface-hover) text-(--text-primary)'
+              : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
           }`}
         >
           Movies
@@ -120,8 +124,8 @@ export function Search() {
           onClick={() => changeType('tv-shows')}
           className={`cursor-pointer rounded-md px-4 py-2 text-sm font-medium transition-colors ${
             selectedType === 'tv-shows'
-              ? 'bg-[#242124] text-white'
-              : 'text-[#99949C] hover:bg-[#242124] hover:text-white'
+              ? 'bg-(--surface-hover) text-(--text-primary)'
+              : 'text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
           }`}
         >
           TV Shows
@@ -130,13 +134,13 @@ export function Search() {
 
       <div className="mt-10">
         {isLoading && (
-          <p className="text-[#99949C]">Loading search results...</p>
+          <p className="text-(--text-secondary)">Loading search results...</p>
         )}
 
-        {error && <p className="text-[#99949C]">{error}</p>}
+        {error && <p className="text-(--text-secondary)">{error}</p>}
 
         {!isLoading && !error && !hasResults && (
-          <p className="text-[#99949C]">
+          <p className="text-(--text-secondary)">
             {selectedType === 'movies'
               ? 'No movies found.'
               : 'No TV shows found.'}
@@ -164,8 +168,8 @@ export function Search() {
                     onClick={() => changePage(page)}
                     className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
                       currentPage === page
-                        ? 'border-[#4A391B] bg-[#2B2115] text-[#D6A640]'
-                        : 'border-[#242124] bg-[#121012] text-[#99949C] hover:bg-[#242124] hover:text-white'
+                        ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                        : 'border-(--border) bg-(--surface-secondary) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                     }`}
                   >
                     {page}
