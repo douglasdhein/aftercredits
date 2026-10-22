@@ -1,9 +1,12 @@
 ﻿using AfterCredits.Api.Data;
 using AfterCredits.Api.DTOs.Auth;
 using AfterCredits.Api.Entities;
+using AfterCredits.Api.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace AfterCredits.Api.Controllers;
 
@@ -13,14 +16,17 @@ public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IPasswordHasher<User> _passwordHasher;
+    private readonly TokenService _tokenService;
 
     public AuthController(
         AppDbContext context,
-        IPasswordHasher<User> passwordHasher
+        IPasswordHasher<User> passwordHasher,
+        TokenService tokenService
     )
     {
         _context = context;
         _passwordHasher = passwordHasher;
+        _tokenService = tokenService;
     }
 
     [HttpPost("register")]
@@ -98,13 +104,32 @@ public class AuthController : ControllerBase
             });
         }
 
+        var token = _tokenService.GenerateToken(user);
+
         var response = new LoginResponseDto
         {
             Id = user.Id,
             Name = user.Name,
-            Email = user.Email
+            Email = user.Email,
+            Token = token
         };
 
         return Ok(response);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult GetCurrentUser()
+    {
+        var id = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var name = User.FindFirstValue(ClaimTypes.Name);
+        var email = User.FindFirstValue(ClaimTypes.Email);
+
+        return Ok(new
+        {
+            id,
+            name,
+            email
+        });
     }
 }
