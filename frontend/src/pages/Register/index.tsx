@@ -1,4 +1,4 @@
-import { type FormEvent, useState } from 'react';
+import { type SubmitEvent, useState } from 'react';
 import { registerUser } from '../../services/authService';
 
 export function Register() {
@@ -10,7 +10,7 @@ export function Register() {
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsLoading(true);
