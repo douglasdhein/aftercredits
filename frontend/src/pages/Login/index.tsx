@@ -1,8 +1,11 @@
 import { type SubmitEvent, useState } from 'react';
 import { Link } from 'react-router';
+import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { loginUser } from '../../services/authService';
 
 export function Login() {
+  const { login } = useAuth();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -19,10 +22,12 @@ export function Login() {
     setSuccessMessage('');
 
     try {
-      await loginUser({
+      const response = await loginUser({
         email,
         password,
       });
+
+      login(response, rememberMe);
 
       setPassword('');
       setSuccessMessage('Signed in successfully.');

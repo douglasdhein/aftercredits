@@ -1,6 +1,16 @@
-import { FileX2, Menu, Moon, Search, Sun, UserRound, X } from 'lucide-react';
+import {
+  FileX2,
+  LogOut,
+  Menu,
+  Moon,
+  Search,
+  Sun,
+  UserRound,
+  X,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { searchMovies } from '../../services/movieService';
 import { searchTvShows } from '../../services/tvShowService';
 import type { Movie } from '../../types/movie';
@@ -9,8 +19,11 @@ import type { TvShow } from '../../types/tvShow';
 type Theme = 'dark' | 'light';
 
 export function Header() {
+  const { session, isAuthenticated, logout } = useAuth();
+
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [movieResults, setMovieResults] = useState<Movie[]>([]);
   const [tvShowResults, setTvShowResults] = useState<TvShow[]>([]);
@@ -77,9 +90,15 @@ export function Header() {
     };
   }, [searchQuery]);
 
+  function toggleNavigationMenu() {
+    setIsMenuOpen((currentValue) => !currentValue);
+    setIsUserMenuOpen(false);
+  }
+
   function openSearch() {
     setIsSearchOpen(true);
     setIsMenuOpen(false);
+    setIsUserMenuOpen(false);
   }
 
   function closeSearch() {
@@ -105,6 +124,16 @@ export function Header() {
     setTheme((currentTheme) => (currentTheme === 'dark' ? 'light' : 'dark'));
   }
 
+  function toggleUserMenu() {
+    setIsUserMenuOpen((currentValue) => !currentValue);
+    setIsMenuOpen(false);
+  }
+
+  function handleLogout() {
+    logout();
+    setIsUserMenuOpen(false);
+  }
+
   return (
     <>
       <header className="sticky top-0 z-50 border-b border-(--border) bg-(--header-background) transition-colors">
@@ -113,7 +142,7 @@ export function Header() {
             type="button"
             aria-label="Open navigation menu"
             aria-expanded={isMenuOpen}
-            onClick={() => setIsMenuOpen((prev) => !prev)}
+            onClick={toggleNavigationMenu}
             className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary) md:hidden"
           >
             <Menu className="h-5 w-5" strokeWidth={1.5} />
@@ -133,7 +162,7 @@ export function Header() {
             </Link>
           </nav>
 
-          <div className="flex items-center gap-3">
+          <div className="relative flex items-center gap-3">
             <button
               type="button"
               onClick={openSearch}
@@ -160,13 +189,48 @@ export function Header() {
               )}
             </button>
 
-            <button
-              type="button"
-              aria-label="Login"
-              className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary)"
-            >
-              <UserRound className="h-5 w-5" strokeWidth={1.5} />
-            </button>
+            {isAuthenticated ? (
+              <button
+                type="button"
+                aria-label="Open user menu"
+                aria-expanded={isUserMenuOpen}
+                onClick={toggleUserMenu}
+                className="flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary)"
+              >
+                <UserRound className="h-5 w-5" strokeWidth={1.5} />
+              </button>
+            ) : (
+              <Link
+                to="/login"
+                aria-label="Login"
+                className="flex h-10 w-10 items-center justify-center rounded-lg text-(--text-secondary) transition-colors hover:text-(--text-primary)"
+              >
+                <UserRound className="h-5 w-5" strokeWidth={1.5} />
+              </Link>
+            )}
+
+            {isAuthenticated && session && isUserMenuOpen && (
+              <div className="absolute top-12 right-0 w-64 rounded-xl border border-(--border) bg-(--surface) p-3 shadow-xl">
+                <div className="border-b border-(--border) px-2 pb-3">
+                  <p className="truncate text-sm font-medium text-(--text-primary)">
+                    {session.name}
+                  </p>
+
+                  <p className="mt-1 truncate text-xs text-(--text-secondary)">
+                    {session.email}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="mt-2 flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-2 text-left text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)"
+                >
+                  <LogOut className="h-4 w-4" strokeWidth={1.5} />
+                  Logout
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
