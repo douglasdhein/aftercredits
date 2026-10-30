@@ -1,10 +1,11 @@
 import { type SubmitEvent, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, Navigate, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { loginUser } from '../../services/authService';
 
 export function Login() {
-  const { login } = useAuth();
+  const { isAuthenticated, login } = useAuth();
+  const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,14 +13,12 @@ export function Login() {
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
 
   async function handleSubmit(event: SubmitEvent<HTMLFormElement>) {
     event.preventDefault();
 
     setIsLoading(true);
     setError('');
-    setSuccessMessage('');
 
     try {
       const response = await loginUser({
@@ -29,8 +28,9 @@ export function Login() {
 
       login(response, rememberMe);
 
-      setPassword('');
-      setSuccessMessage('Signed in successfully.');
+      navigate('/', {
+        replace: true,
+      });
     } catch (error) {
       if (error instanceof Error) {
         setError(error.message);
@@ -40,6 +40,10 @@ export function Login() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
   return (
@@ -115,10 +119,6 @@ export function Login() {
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}
-
-          {successMessage && (
-            <p className="text-sm text-(--text-secondary)">{successMessage}</p>
-          )}
 
           <button
             type="submit"

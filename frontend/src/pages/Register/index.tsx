@@ -1,7 +1,11 @@
 import { type SubmitEvent, useState } from 'react';
+import { Navigate } from 'react-router';
+import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { registerUser } from '../../services/authService';
 
 export function Register() {
+  const { isAuthenticated } = useAuth();
+
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -38,6 +42,10 @@ export function Register() {
     } finally {
       setIsLoading(false);
     }
+  }
+
+  if (isAuthenticated) {
+    return <Navigate to="/" replace />;
   }
 
   return (

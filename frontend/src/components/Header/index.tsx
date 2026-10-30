@@ -9,7 +9,7 @@ import {
   X,
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { searchMovies } from '../../services/movieService';
 import { searchTvShows } from '../../services/tvShowService';
@@ -20,6 +20,7 @@ type Theme = 'dark' | 'light';
 
 export function Header() {
   const { session, isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
 
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -132,6 +133,10 @@ export function Header() {
   function handleLogout() {
     logout();
     setIsUserMenuOpen(false);
+
+    navigate('/', {
+      replace: true,
+    });
   }
 
   return (
