@@ -68,6 +68,72 @@ public class ReviewsController : ControllerBase
     }
 
     [Authorize]
+    [HttpGet("me")]
+    public async Task<ActionResult<ReviewResponseDto>> GetCurrentUserReview(
+        [FromQuery] int mediaId,
+        [FromQuery] string mediaType
+    )
+    {
+        var userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
+
+        if (!int.TryParse(userIdValue, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (mediaId <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Media ID must be greater than zero."
+            });
+        }
+
+        var normalizedMediaType = mediaType.Trim().ToLowerInvariant();
+
+        if (normalizedMediaType != "movie" && normalizedMediaType != "tv")
+        {
+            return BadRequest(new
+            {
+                message = "Media type must be either 'movie' or 'tv'."
+            });
+        }
+
+        var review = await _context.Reviews
+            .AsNoTracking()
+            .Where(review =>
+                review.UserId == userId &&
+                review.MediaId == mediaId &&
+                review.MediaType == normalizedMediaType
+            )
+            .Select(review => new ReviewResponseDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                UserName = review.User.Name,
+                MediaId = review.MediaId,
+                MediaType = review.MediaType,
+                Rating = review.Rating,
+                Content = review.Content,
+                CreatedAt = review.CreatedAt,
+                UpdatedAt = review.UpdatedAt
+            })
+            .FirstOrDefaultAsync();
+
+        if (review is null)
+        {
+            return NotFound(new
+            {
+                message = "Review not found."
+            });
+        }
+
+        return Ok(review);
+    }
+
+    [Authorize]
     [HttpPost]
     public async Task<ActionResult<ReviewResponseDto>> CreateReview(
         CreateReviewRequestDto request
