@@ -19,6 +19,54 @@ public class ReviewsController : ControllerBase
         _context = context;
     }
 
+    [HttpGet]
+    public async Task<ActionResult<List<ReviewResponseDto>>> GetReviews(
+        [FromQuery] int mediaId,
+        [FromQuery] string mediaType
+    )
+    {
+        if (mediaId <= 0)
+        {
+            return BadRequest(new
+            {
+                message = "Media ID must be greater than zero."
+            });
+        }
+
+        var normalizedMediaType = mediaType.Trim().ToLowerInvariant();
+
+        if (normalizedMediaType != "movie" && normalizedMediaType != "tv")
+        {
+            return BadRequest(new
+            {
+                message = "Media type must be either 'movie' or 'tv'."
+            });
+        }
+
+        var reviews = await _context.Reviews
+            .AsNoTracking()
+            .Where(review =>
+                review.MediaId == mediaId &&
+                review.MediaType == normalizedMediaType
+            )
+            .OrderByDescending(review => review.CreatedAt)
+            .Select(review => new ReviewResponseDto
+            {
+                Id = review.Id,
+                UserId = review.UserId,
+                UserName = review.User.Name,
+                MediaId = review.MediaId,
+                MediaType = review.MediaType,
+                Rating = review.Rating,
+                Content = review.Content,
+                CreatedAt = review.CreatedAt,
+                UpdatedAt = review.UpdatedAt
+            })
+            .ToListAsync();
+
+        return Ok(reviews);
+    }
+
     [Authorize]
     [HttpPost]
     public async Task<ActionResult<ReviewResponseDto>> CreateReview(
