@@ -280,4 +280,46 @@ public class ReviewsController : ControllerBase
 
         return Ok(response);
     }
+
+    [Authorize]
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> DeleteReview(int id)
+    {
+        var userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
+
+        if (!int.TryParse(userIdValue, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        var review = await _context.Reviews
+            .FirstOrDefaultAsync(review => review.Id == id);
+
+        if (review is null)
+        {
+            return NotFound(new
+            {
+                message = "Review not found."
+            });
+        }
+
+        if (review.UserId != userId)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message = "You cannot delete this review."
+                }
+            );
+        }
+
+        _context.Reviews.Remove(review);
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
+    }
 }
