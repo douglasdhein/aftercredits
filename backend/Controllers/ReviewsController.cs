@@ -211,4 +211,73 @@ public class ReviewsController : ControllerBase
             response
         );
     }
+
+    [Authorize]
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<ReviewResponseDto>> UpdateReview(
+        int id,
+        UpdateReviewRequestDto request
+    )
+    {
+        var userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
+
+        if (!int.TryParse(userIdValue, out var userId))
+        {
+            return Unauthorized();
+        }
+
+        if (request.Rating % 0.5m != 0)
+        {
+            return BadRequest(new
+            {
+                message = "Rating must increase in 0.5 increments."
+            });
+        }
+
+        var review = await _context.Reviews
+            .Include(review => review.User)
+            .FirstOrDefaultAsync(review => review.Id == id);
+
+        if (review is null)
+        {
+            return NotFound(new
+            {
+                message = "Review not found."
+            });
+        }
+
+        if (review.UserId != userId)
+        {
+            return StatusCode(
+                StatusCodes.Status403Forbidden,
+                new
+                {
+                    message = "You cannot edit this review."
+                }
+            );
+        }
+
+        review.Rating = request.Rating;
+        review.Content = request.Content.Trim();
+        review.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        var response = new ReviewResponseDto
+        {
+            Id = review.Id,
+            UserId = review.UserId,
+            UserName = review.User.Name,
+            MediaId = review.MediaId,
+            MediaType = review.MediaType,
+            Rating = review.Rating,
+            Content = review.Content,
+            CreatedAt = review.CreatedAt,
+            UpdatedAt = review.UpdatedAt
+        };
+
+        return Ok(response);
+    }
 }
