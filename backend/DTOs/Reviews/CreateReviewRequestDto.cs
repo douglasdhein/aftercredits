@@ -11,7 +11,13 @@ public class CreateReviewRequestDto
     [RegularExpression("^(movie|tv)$")]
     public string MediaType { get; set; } = string.Empty;
 
-    [Range(typeof(decimal), "0.5", "5.0")]
+    [Range(
+        typeof(decimal),
+        "0.5",
+        "5.0",
+        ParseLimitsInInvariantCulture = true,
+        ConvertValueInInvariantCulture = true
+    )]
     public decimal Rating { get; set; }
 
     [Required]
