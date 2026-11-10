@@ -1,18 +1,30 @@
-import { Bookmark, FileX2, Heart, MessageSquareText, Star } from 'lucide-react';
+import {
+  Bookmark,
+  FileX2,
+  Heart,
+  MessageSquareText,
+  Pencil,
+  Star,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
+import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getTvShowDetails } from '../../services/tvShowService';
 import type { TvShowDetails as TvShowDetailsType } from '../../types/tvShow';
 import { formatDate } from '../../utils/formatDate';
 
 export function TvShowDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [tvShow, setTvShow] = useState<TvShowDetailsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
+  const [isCreateReviewOpen, setIsCreateReviewOpen] = useState(false);
 
   useEffect(() => {
     async function loadTvShowDetails() {
@@ -42,6 +54,15 @@ export function TvShowDetails() {
     }
 
     return `${runtime[0]} min`;
+  }
+
+  function handleCreateReview() {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setIsCreateReviewOpen(true);
   }
 
   if (isLoading) {
@@ -137,6 +158,15 @@ export function TvShowDetails() {
 
                 <button
                   type="button"
+                  onClick={handleCreateReview}
+                  className={actionButtonClasses}
+                >
+                  <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                  Create review
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setIsReviewsOpen(true)}
                   className={actionButtonClasses}
                 >
@@ -158,6 +188,15 @@ export function TvShowDetails() {
           </div>
         </div>
       </section>
+
+      <CreateReviewModal
+        isOpen={isCreateReviewOpen}
+        onClose={() => setIsCreateReviewOpen(false)}
+        mediaId={tvShow.id}
+        mediaType="tv"
+        mediaTitle={tvShow.name}
+        onCreated={() => setIsReviewsOpen(true)}
+      />
 
       <ReviewsModal
         isOpen={isReviewsOpen}

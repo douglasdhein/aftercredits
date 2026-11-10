@@ -1,18 +1,30 @@
-import { Bookmark, FileX2, Heart, MessageSquareText, Star } from 'lucide-react';
+import {
+  Bookmark,
+  FileX2,
+  Heart,
+  MessageSquareText,
+  Pencil,
+  Star,
+} from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router';
+import { useNavigate, useParams } from 'react-router';
+import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
+import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getMovieDetails } from '../../services/movieService';
 import type { MovieDetails as MovieDetailsType } from '../../types/movie';
 import { formatDate } from '../../utils/formatDate';
 
 export function MovieDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   const [movie, setMovie] = useState<MovieDetailsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
+  const [isCreateReviewOpen, setIsCreateReviewOpen] = useState(false);
 
   useEffect(() => {
     async function loadMovieDetails() {
@@ -34,6 +46,15 @@ export function MovieDetails() {
 
     loadMovieDetails();
   }, [id]);
+
+  function handleCreateReview() {
+    if (!isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+
+    setIsCreateReviewOpen(true);
+  }
 
   if (isLoading) {
     return (
@@ -132,6 +153,15 @@ export function MovieDetails() {
 
                 <button
                   type="button"
+                  onClick={handleCreateReview}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover)"
+                >
+                  <Pencil className="h-4 w-4" />
+                  Create review
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setIsReviewsOpen(true)}
                   className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover)"
                 >
@@ -153,6 +183,15 @@ export function MovieDetails() {
           </div>
         </div>
       </section>
+
+      <CreateReviewModal
+        isOpen={isCreateReviewOpen}
+        onClose={() => setIsCreateReviewOpen(false)}
+        mediaId={movie.id}
+        mediaType="movie"
+        mediaTitle={movie.title}
+        onCreated={() => setIsReviewsOpen(true)}
+      />
 
       <ReviewsModal
         isOpen={isReviewsOpen}
