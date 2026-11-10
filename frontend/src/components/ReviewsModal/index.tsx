@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getCurrentUserReview, getReviews } from '../../services/reviewService';
 import type { Review } from '../../types/review';
+import { DeleteReviewModal } from '../DeleteReviewModal';
 import { EditReviewModal } from '../EditReviewModal';
 
 interface ReviewsModalProps {
@@ -27,6 +28,7 @@ export function ReviewsModal({
     null,
   );
   const [editingReview, setEditingReview] = useState<Review | null>(null);
+  const [deletingReview, setDeletingReview] = useState<Review | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -75,7 +77,7 @@ export function ReviewsModal({
     }
 
     function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === 'Escape' && !editingReview) {
+      if (event.key === 'Escape' && !editingReview && !deletingReview) {
         onClose();
       }
     }
@@ -87,7 +89,7 @@ export function ReviewsModal({
       document.removeEventListener('keydown', handleKeyDown);
       document.body.style.overflow = '';
     };
-  }, [isOpen, editingReview, onClose]);
+  }, [isOpen, editingReview, deletingReview, onClose]);
 
   if (!isOpen) {
     return null;
@@ -107,6 +109,16 @@ export function ReviewsModal({
         review.id === updatedReview.id ? updatedReview : review,
       ),
     );
+  }
+
+  function handleReviewDeleted(reviewId: number) {
+    setReviews((currentReviews) =>
+      currentReviews.filter((review) => review.id !== reviewId),
+    );
+
+    if (reviewId === currentUserReviewId) {
+      setCurrentUserReviewId(null);
+    }
   }
 
   return (
@@ -204,6 +216,7 @@ export function ReviewsModal({
 
                           <button
                             type="button"
+                            onClick={() => setDeletingReview(review)}
                             aria-label="Delete review"
                             title="Delete review"
                             className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-(--border-strong) text-(--text-secondary) transition-colors hover:border-red-500 hover:bg-(--surface-hover) hover:text-red-500"
@@ -226,6 +239,14 @@ export function ReviewsModal({
           review={editingReview}
           onClose={() => setEditingReview(null)}
           onUpdated={handleReviewUpdated}
+        />
+      )}
+
+      {deletingReview && (
+        <DeleteReviewModal
+          review={deletingReview}
+          onClose={() => setDeletingReview(null)}
+          onDeleted={handleReviewDeleted}
         />
       )}
     </>
