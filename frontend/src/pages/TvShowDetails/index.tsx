@@ -1,6 +1,7 @@
 import { Bookmark, FileX2, Heart, MessageSquareText, Star } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useParams } from 'react-router';
+import { ReviewsModal } from '../../components/ReviewsModal';
 import { getTvShowDetails } from '../../services/tvShowService';
 import type { TvShowDetails as TvShowDetailsType } from '../../types/tvShow';
 import { formatDate } from '../../utils/formatDate';
@@ -11,6 +12,7 @@ export function TvShowDetails() {
   const [tvShow, setTvShow] = useState<TvShowDetailsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isReviewsOpen, setIsReviewsOpen] = useState(false);
 
   useEffect(() => {
     async function loadTvShowDetails() {
@@ -67,89 +69,103 @@ export function TvShowDetails() {
     'inline-flex items-center rounded-md border border-(--border-strong) px-2 py-1 text-xs text-(--text-secondary)';
 
   return (
-    <section className="mx-auto w-full max-w-7xl px-6 py-12">
-      <div className="rounded-xl border border-(--border) bg-(--surface) p-6 transition-colors md:p-8">
-        <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12">
-          {posterUrl ? (
-            <img
-              src={posterUrl}
-              alt={tvShow.name}
-              className="aspect-2/3 w-full rounded-lg object-cover"
-            />
-          ) : (
-            <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-(--border) bg-(--surface-secondary)">
-              <FileX2
-                className="h-16 w-16 text-(--text-tertiary)"
-                strokeWidth={1.5}
+    <>
+      <section className="mx-auto w-full max-w-7xl px-6 py-12">
+        <div className="rounded-xl border border-(--border) bg-(--surface) p-6 transition-colors md:p-8">
+          <div className="grid gap-8 md:grid-cols-[360px_1fr] md:gap-12">
+            {posterUrl ? (
+              <img
+                src={posterUrl}
+                alt={tvShow.name}
+                className="aspect-2/3 w-full rounded-lg object-cover"
               />
-            </div>
-          )}
+            ) : (
+              <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-(--border) bg-(--surface-secondary)">
+                <FileX2
+                  className="h-16 w-16 text-(--text-tertiary)"
+                  strokeWidth={1.5}
+                />
+              </div>
+            )}
 
-          <div>
-            <h1 className="text-3xl font-light text-(--text-primary) md:text-4xl">
-              {tvShow.name}
-            </h1>
+            <div>
+              <h1 className="text-3xl font-light text-(--text-primary) md:text-4xl">
+                {tvShow.name}
+              </h1>
 
-            <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-(--text-secondary)">
-              <span>{formatDate(tvShow.first_air_date)}</span>
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-(--text-secondary)">
+                <span>{formatDate(tvShow.first_air_date)}</span>
 
-              <span>
-                {tvShow.number_of_seasons}{' '}
-                {tvShow.number_of_seasons === 1 ? 'season' : 'seasons'}
-              </span>
-
-              <span>
-                {tvShow.number_of_episodes}{' '}
-                {tvShow.number_of_episodes === 1 ? 'episode' : 'episodes'}
-              </span>
-
-              {episodeRuntime && <span>{episodeRuntime}</span>}
-            </div>
-
-            <div className="mt-4 flex flex-wrap gap-2">
-              {tvShow.genres.map((genre) => (
-                <span key={genre.id} className={genreClasses}>
-                  {genre.name}
+                <span>
+                  {tvShow.number_of_seasons}{' '}
+                  {tvShow.number_of_seasons === 1 ? 'season' : 'seasons'}
                 </span>
-              ))}
-            </div>
 
-            <div className="mt-5">
-              <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-(--rating-border) bg-(--rating-background) px-3 text-sm font-medium text-(--rating-text)">
-                <Star className="h-4 w-4" strokeWidth={1.5} />
-                {tvShow.vote_average.toFixed(1)}
-              </span>
-            </div>
+                <span>
+                  {tvShow.number_of_episodes}{' '}
+                  {tvShow.number_of_episodes === 1 ? 'episode' : 'episodes'}
+                </span>
 
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button type="button" className={actionButtonClasses}>
-                <Heart className="h-4 w-4" strokeWidth={1.5} />
-                Favorite
-              </button>
+                {episodeRuntime && <span>{episodeRuntime}</span>}
+              </div>
 
-              <button type="button" className={actionButtonClasses}>
-                <Bookmark className="h-4 w-4" strokeWidth={1.5} />
-                Watchlist
-              </button>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {tvShow.genres.map((genre) => (
+                  <span key={genre.id} className={genreClasses}>
+                    {genre.name}
+                  </span>
+                ))}
+              </div>
 
-              <button type="button" className={actionButtonClasses}>
-                <MessageSquareText className="h-4 w-4" strokeWidth={1.5} />
-                Reviews
-              </button>
-            </div>
+              <div className="mt-5">
+                <span className="inline-flex h-9 items-center gap-2 rounded-lg border border-(--rating-border) bg-(--rating-background) px-3 text-sm font-medium text-(--rating-text)">
+                  <Star className="h-4 w-4" strokeWidth={1.5} />
+                  {tvShow.vote_average.toFixed(1)}
+                </span>
+              </div>
 
-            <div className="mt-8">
-              <h2 className="text-xl font-light text-(--text-primary)">
-                Overview
-              </h2>
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button type="button" className={actionButtonClasses}>
+                  <Heart className="h-4 w-4" strokeWidth={1.5} />
+                  Favorite
+                </button>
 
-              <p className="mt-3 max-w-3xl leading-relaxed text-(--text-secondary)">
-                {tvShow.overview || 'No overview available.'}
-              </p>
+                <button type="button" className={actionButtonClasses}>
+                  <Bookmark className="h-4 w-4" strokeWidth={1.5} />
+                  Watchlist
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsReviewsOpen(true)}
+                  className={actionButtonClasses}
+                >
+                  <MessageSquareText className="h-4 w-4" strokeWidth={1.5} />
+                  View reviews
+                </button>
+              </div>
+
+              <div className="mt-8">
+                <h2 className="text-xl font-light text-(--text-primary)">
+                  Overview
+                </h2>
+
+                <p className="mt-3 max-w-3xl leading-relaxed text-(--text-secondary)">
+                  {tvShow.overview || 'No overview available.'}
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <ReviewsModal
+        isOpen={isReviewsOpen}
+        onClose={() => setIsReviewsOpen(false)}
+        mediaId={tvShow.id}
+        mediaType="tv"
+        mediaTitle={tvShow.name}
+      />
+    </>
   );
 }
