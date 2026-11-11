@@ -1,4 +1,4 @@
-import { Pencil, Star, Trash2, X } from 'lucide-react';
+import { Pencil, Star, Trash2, UserRound, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getCurrentUserReview, getReviews } from '../../services/reviewService';
@@ -13,6 +13,8 @@ interface ReviewsModalProps {
   mediaType: 'movie' | 'tv';
   mediaTitle: string;
 }
+
+const REVIEWS_PER_PAGE = 5;
 
 export function ReviewsModal({
   isOpen,
@@ -29,6 +31,9 @@ export function ReviewsModal({
   );
   const [editingReview, setEditingReview] = useState<Review | null>(null);
   const [deletingReview, setDeletingReview] = useState<Review | null>(null);
+  const [showOnlyCurrentUserReview, setShowOnlyCurrentUserReview] =
+    useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -45,6 +50,8 @@ export function ReviewsModal({
         const reviewsData = await getReviews(mediaId, mediaType);
 
         setReviews(reviewsData);
+        setCurrentPage(1);
+        setShowOnlyCurrentUserReview(false);
 
         if (session?.token) {
           const currentUserReview = await getCurrentUserReview(
@@ -95,12 +102,31 @@ export function ReviewsModal({
     return null;
   }
 
+  const filteredReviews = showOnlyCurrentUserReview
+    ? reviews.filter((review) => review.id === currentUserReviewId)
+    : reviews;
+
+  const totalPages = Math.ceil(filteredReviews.length / REVIEWS_PER_PAGE);
+
+  const firstReviewIndex = (currentPage - 1) * REVIEWS_PER_PAGE;
+  const lastReviewIndex = firstReviewIndex + REVIEWS_PER_PAGE;
+
+  const currentReviews = filteredReviews.slice(
+    firstReviewIndex,
+    lastReviewIndex,
+  );
+
   function formatReviewDate(date: string) {
     return new Intl.DateTimeFormat('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
     }).format(new Date(date));
+  }
+
+  function handleReviewFilter() {
+    setShowOnlyCurrentUserReview((currentValue) => !currentValue);
+    setCurrentPage(1);
   }
 
   function handleReviewUpdated(updatedReview: Review) {
@@ -112,9 +138,21 @@ export function ReviewsModal({
   }
 
   function handleReviewDeleted(reviewId: number) {
-    setReviews((currentReviews) =>
-      currentReviews.filter((review) => review.id !== reviewId),
-    );
+    setReviews((currentReviews) => {
+      const updatedReviews = currentReviews.filter(
+        (review) => review.id !== reviewId,
+      );
+
+      const updatedTotalPages = Math.ceil(
+        updatedReviews.length / REVIEWS_PER_PAGE,
+      );
+
+      if (currentPage > updatedTotalPages && updatedTotalPages > 0) {
+        setCurrentPage(updatedTotalPages);
+      }
+
+      return updatedReviews;
+    });
 
     if (reviewId === currentUserReviewId) {
       setCurrentUserReviewId(null);
@@ -128,7 +166,7 @@ export function ReviewsModal({
         onClick={onClose}
       >
         <div
-          className="custom-scrollbar max-h-[calc(100vh-4rem)] w-full max-w-2xl overflow-y-auto rounded-xl border border-(--border) bg-(--surface) p-6 shadow-xl"
+          className="custom-scrollbar max-h-[calc(100vh-4rem)] w-full max-w-200 overflow-y-auto rounded-xl border border-(--border) bg-(--surface) p-6 shadow-xl"
           onClick={(event) => event.stopPropagation()}
         >
           <div className="flex items-start justify-between gap-4">
@@ -152,6 +190,24 @@ export function ReviewsModal({
             </button>
           </div>
 
+          {session?.token && !isLoading && !error && (
+            <div className="mt-5">
+              <button
+                type="button"
+                onClick={handleReviewFilter}
+                className={`inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors ${
+                  showOnlyCurrentUserReview
+                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                    : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                }`}
+              >
+                <UserRound className="h-4 w-4" strokeWidth={1.5} />
+
+                {showOnlyCurrentUserReview ? 'All reviews' : 'My review'}
+              </button>
+            </div>
+          )}
+
           <div className="mt-6">
             {isLoading && (
               <p className="text-sm text-(--text-secondary)">
@@ -169,66 +225,107 @@ export function ReviewsModal({
               </div>
             )}
 
-            {!isLoading && !error && reviews.length > 0 && (
-              <div className="space-y-4">
-                {reviews.map((review) => {
-                  const isCurrentUserReview = review.id === currentUserReviewId;
+            {!isLoading &&
+              !error &&
+              reviews.length > 0 &&
+              showOnlyCurrentUserReview &&
+              filteredReviews.length === 0 && (
+                <div className="rounded-lg border border-(--border) bg-(--surface-secondary) px-5 py-8 text-center">
+                  <p className="text-sm text-(--text-secondary)">
+                    You haven't reviewed this title yet.
+                  </p>
+                </div>
+              )}
 
-                  return (
-                    <article
-                      key={review.id}
-                      className="rounded-lg border border-(--border) bg-(--surface-secondary) p-5"
-                    >
-                      <div className="flex flex-wrap items-start justify-between gap-3">
-                        <div>
-                          <p className="font-medium text-(--text-primary)">
-                            {review.userName}
-                          </p>
+            {!isLoading && !error && currentReviews.length > 0 && (
+              <>
+                <div className="space-y-4">
+                  {currentReviews.map((review) => {
+                    const isCurrentUserReview =
+                      review.id === currentUserReviewId;
 
-                          <p className="mt-1 text-xs text-(--text-tertiary)">
-                            {review.updatedAt
-                              ? `Edited ${formatReviewDate(review.updatedAt)}`
-                              : formatReviewDate(review.createdAt)}
-                          </p>
+                    return (
+                      <article
+                        key={review.id}
+                        className="rounded-lg border border-(--border) bg-(--surface-secondary) p-5"
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <p className="font-medium text-(--text-primary)">
+                              {review.userName}
+                            </p>
+
+                            <p className="mt-1 text-xs text-(--text-tertiary)">
+                              {review.updatedAt
+                                ? `Edited ${formatReviewDate(review.updatedAt)}`
+                                : formatReviewDate(review.createdAt)}
+                            </p>
+                          </div>
+
+                          <span className="inline-flex items-center gap-1.5 rounded-md border border-(--rating-border) bg-(--rating-background) px-2 py-1 text-xs font-medium text-(--rating-text)">
+                            <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
+                            {review.rating.toFixed(1)}
+                          </span>
                         </div>
 
-                        <span className="inline-flex items-center gap-1.5 rounded-md border border-(--rating-border) bg-(--rating-background) px-2 py-1 text-xs font-medium text-(--rating-text)">
-                          <Star className="h-3.5 w-3.5" strokeWidth={1.5} />
-                          {review.rating.toFixed(1)}
-                        </span>
-                      </div>
+                        <p className="mt-4 whitespace-pre-line text-justify text-sm leading-6 text-(--text-secondary)">
+                          {review.content}
+                        </p>
 
-                      <p className="mt-4 whitespace-pre-line text-justify text-sm leading-6 text-(--text-secondary)">
-                        {review.content}
-                      </p>
+                        {isCurrentUserReview && (
+                          <div className="mt-5 flex justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setEditingReview(review)}
+                              aria-label="Edit review"
+                              title="Edit review"
+                              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-(--border-strong) text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)"
+                            >
+                              <Pencil className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
 
-                      {isCurrentUserReview && (
-                        <div className="mt-5 flex justify-end gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setEditingReview(review)}
-                            aria-label="Edit review"
-                            title="Edit review"
-                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-(--border-strong) text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)"
-                          >
-                            <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                          </button>
+                            <button
+                              type="button"
+                              onClick={() => setDeletingReview(review)}
+                              aria-label="Delete review"
+                              title="Delete review"
+                              className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-(--border-strong) text-(--text-secondary) transition-colors hover:border-red-500 hover:bg-(--surface-hover) hover:text-red-500"
+                            >
+                              <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+                            </button>
+                          </div>
+                        )}
+                      </article>
+                    );
+                  })}
+                </div>
 
-                          <button
-                            type="button"
-                            onClick={() => setDeletingReview(review)}
-                            aria-label="Delete review"
-                            title="Delete review"
-                            className="flex h-9 w-9 cursor-pointer items-center justify-center rounded-md border border-(--border-strong) text-(--text-secondary) transition-colors hover:border-red-500 hover:bg-(--surface-hover) hover:text-red-500"
-                          >
-                            <Trash2 className="h-4 w-4" strokeWidth={1.5} />
-                          </button>
-                        </div>
-                      )}
-                    </article>
-                  );
-                })}
-              </div>
+                {totalPages > 1 && (
+                  <div className="mt-6 flex flex-wrap justify-center gap-2">
+                    {Array.from({ length: totalPages }, (_, index) => {
+                      const page = index + 1;
+                      const isActive = page === currentPage;
+
+                      return (
+                        <button
+                          key={page}
+                          type="button"
+                          onClick={() => setCurrentPage(page)}
+                          aria-label={`Go to reviews page ${page}`}
+                          aria-current={isActive ? 'page' : undefined}
+                          className={`flex h-10 w-10 cursor-pointer items-center justify-center rounded-lg border text-sm font-medium transition-colors ${
+                            isActive
+                              ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                              : 'border-(--border) bg-(--surface-secondary) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                          }`}
+                        >
+                          {page}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>
