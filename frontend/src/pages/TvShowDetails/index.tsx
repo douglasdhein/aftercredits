@@ -8,9 +8,11 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { AlertModal } from '../../components/AlertModal';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
+import { getCurrentUserReview } from '../../services/reviewService';
 import { getTvShowDetails } from '../../services/tvShowService';
 import type { TvShowDetails as TvShowDetailsType } from '../../types/tvShow';
 import { formatDate } from '../../utils/formatDate';
@@ -18,13 +20,15 @@ import { formatDate } from '../../utils/formatDate';
 export function TvShowDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, session } = useAuth();
 
   const [tvShow, setTvShow] = useState<TvShowDetailsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [isCreateReviewOpen, setIsCreateReviewOpen] = useState(false);
+  const [isCheckingReview, setIsCheckingReview] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     async function loadTvShowDetails() {
@@ -56,15 +60,6 @@ export function TvShowDetails() {
     return `${runtime[0]} min`;
   }
 
-  function handleCreateReview() {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    setIsCreateReviewOpen(true);
-  }
-
   if (isLoading) {
     return <p className="px-6 py-12 text-(--text-secondary)">Loading...</p>;
   }
@@ -77,6 +72,36 @@ export function TvShowDetails() {
     return null;
   }
 
+  const tvShowId = tvShow.id;
+
+  async function handleCreateReview() {
+    if (!isAuthenticated || !session?.token) {
+      navigate('/login');
+      return;
+    }
+
+    setIsCheckingReview(true);
+
+    try {
+      const currentUserReview = await getCurrentUserReview(
+        tvShowId,
+        'tv',
+        session.token,
+      );
+
+      if (currentUserReview) {
+        setAlertMessage('You have already reviewed this title.');
+        return;
+      }
+
+      setIsCreateReviewOpen(true);
+    } catch {
+      setAlertMessage('Failed to check your review. Please try again.');
+    } finally {
+      setIsCheckingReview(false);
+    }
+  }
+
   const posterUrl = tvShow.poster_path
     ? `https://image.tmdb.org/t/p/w500${tvShow.poster_path}`
     : null;
@@ -84,7 +109,7 @@ export function TvShowDetails() {
   const episodeRuntime = formatEpisodeRuntime(tvShow.episode_run_time);
 
   const actionButtonClasses =
-    'inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-3 text-sm font-medium text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary)';
+    'inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-3 text-sm font-medium text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-50';
 
   const genreClasses =
     'inline-flex items-center rounded-md border border-(--border-strong) px-2 py-1 text-xs text-(--text-secondary)';
@@ -159,10 +184,11 @@ export function TvShowDetails() {
                 <button
                   type="button"
                   onClick={handleCreateReview}
+                  disabled={isCheckingReview}
                   className={actionButtonClasses}
                 >
                   <Pencil className="h-4 w-4" strokeWidth={1.5} />
-                  Create review
+                  {isCheckingReview ? 'Checking...' : 'Create review'}
                 </button>
 
                 <button
@@ -204,6 +230,12 @@ export function TvShowDetails() {
         mediaId={tvShow.id}
         mediaType="tv"
         mediaTitle={tvShow.name}
+      />
+
+      <AlertModal
+        isOpen={Boolean(alertMessage)}
+        message={alertMessage}
+        onClose={() => setAlertMessage('')}
       />
     </>
   );

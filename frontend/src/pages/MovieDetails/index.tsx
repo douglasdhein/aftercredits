@@ -8,23 +8,27 @@ import {
 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
+import { AlertModal } from '../../components/AlertModal';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getMovieDetails } from '../../services/movieService';
+import { getCurrentUserReview } from '../../services/reviewService';
 import type { MovieDetails as MovieDetailsType } from '../../types/movie';
 import { formatDate } from '../../utils/formatDate';
 
 export function MovieDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, session } = useAuth();
 
   const [movie, setMovie] = useState<MovieDetailsType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
   const [isCreateReviewOpen, setIsCreateReviewOpen] = useState(false);
+  const [isCheckingReview, setIsCheckingReview] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
 
   useEffect(() => {
     async function loadMovieDetails() {
@@ -47,15 +51,6 @@ export function MovieDetails() {
     loadMovieDetails();
   }, [id]);
 
-  function handleCreateReview() {
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-
-    setIsCreateReviewOpen(true);
-  }
-
   if (isLoading) {
     return (
       <section className="mx-auto w-full max-w-7xl px-6 py-12">
@@ -70,6 +65,36 @@ export function MovieDetails() {
         <p className="text-(--text-secondary)">{error || 'Movie not found.'}</p>
       </section>
     );
+  }
+
+  const movieId = movie.id;
+
+  async function handleCreateReview() {
+    if (!isAuthenticated || !session?.token) {
+      navigate('/login');
+      return;
+    }
+
+    setIsCheckingReview(true);
+
+    try {
+      const currentUserReview = await getCurrentUserReview(
+        movieId,
+        'movie',
+        session.token,
+      );
+
+      if (currentUserReview) {
+        setAlertMessage('You have already reviewed this title.');
+        return;
+      }
+
+      setIsCreateReviewOpen(true);
+    } catch {
+      setAlertMessage('Failed to check your review. Please try again.');
+    } finally {
+      setIsCheckingReview(false);
+    }
   }
 
   const posterUrl = movie.poster_path
@@ -154,10 +179,11 @@ export function MovieDetails() {
                 <button
                   type="button"
                   onClick={handleCreateReview}
-                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover)"
+                  disabled={isCheckingReview}
+                  className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover) disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Pencil className="h-4 w-4" />
-                  Create review
+                  {isCheckingReview ? 'Checking...' : 'Create review'}
                 </button>
 
                 <button
@@ -199,6 +225,12 @@ export function MovieDetails() {
         mediaId={movie.id}
         mediaType="movie"
         mediaTitle={movie.title}
+      />
+
+      <AlertModal
+        isOpen={Boolean(alertMessage)}
+        message={alertMessage}
+        onClose={() => setAlertMessage('')}
       />
     </>
   );
