@@ -30,6 +30,14 @@ public class MoviesController : ControllerBase
         return Ok(movies);
     }
 
+    [HttpGet("{id:int}/cast")]
+    public async Task<IActionResult> GetMovieCast(int id)
+    {
+        var cast = await _tmdbService.GetMovieCastAsync(id);
+
+        return Ok(cast);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetMovieDetails(int id)
     {

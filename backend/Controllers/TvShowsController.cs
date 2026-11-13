@@ -22,6 +22,14 @@ public class TvShowsController : ControllerBase
         return Ok(tvShows);
     }
 
+    [HttpGet("{id:int}/cast")]
+    public async Task<IActionResult> GetTvShowCast(int id)
+    {
+        var cast = await _tmdbService.GetTvShowCastAsync(id);
+
+        return Ok(cast);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetTvShowDetails(int id)
     {
@@ -40,9 +48,9 @@ public class TvShowsController : ControllerBase
 
     [HttpGet("search")]
     public async Task<IActionResult> SearchTvShows(
-    [FromQuery] string query,
-    [FromQuery] int page = 1
-)
+        [FromQuery] string query,
+        [FromQuery] int page = 1
+    )
     {
         if (string.IsNullOrWhiteSpace(query))
         {

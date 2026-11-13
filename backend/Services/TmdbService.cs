@@ -132,6 +132,61 @@ public class TmdbService
         return tvShow;
     }
 
+    public async Task<List<CastMemberDto>> GetMovieCastAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"movie/{id}/credits?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var credits =
+            await response.Content.ReadFromJsonAsync<MovieCreditsResponseDto>();
+
+        if (credits is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB movie credits response."
+            );
+        }
+
+        return credits.Cast
+            .OrderBy(castMember => castMember.Order)
+            .ToList();
+    }
+
+    public async Task<List<CastMemberDto>> GetTvShowCastAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"tv/{id}/aggregate_credits?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var credits =
+            await response.Content.ReadFromJsonAsync<TvAggregateCreditsResponseDto>();
+
+        if (credits is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB TV show aggregate credits response."
+            );
+        }
+
+        return credits.Cast
+            .OrderBy(castMember => castMember.Order)
+            .Select(castMember => new CastMemberDto
+            {
+                Id = castMember.Id,
+                Name = castMember.Name,
+                Character = castMember.Roles.FirstOrDefault()?.Character
+                    ?? string.Empty,
+                ProfilePath = castMember.ProfilePath,
+                Order = castMember.Order
+            })
+            .ToList();
+    }
+
     public async Task<PopularMoviesResponseDto> GetMoviesAsync(int page)
     {
         var response = await _httpClient.GetAsync(
@@ -201,9 +256,9 @@ public class TmdbService
     }
 
     public async Task<TrendingTvShowsResponseDto> SearchTvShowsAsync(
-    string query,
-    int page
-)
+        string query,
+        int page
+    )
     {
         var encodedQuery = Uri.EscapeDataString(query);
 
@@ -226,4 +281,3 @@ public class TmdbService
         return tvShows;
     }
 }
-
