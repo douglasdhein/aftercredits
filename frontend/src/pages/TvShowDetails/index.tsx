@@ -9,11 +9,13 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { AlertModal } from '../../components/AlertModal';
+import { CastCard } from '../../components/CastCard';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getCurrentUserReview } from '../../services/reviewService';
-import { getTvShowDetails } from '../../services/tvShowService';
+import { getTvShowCast, getTvShowDetails } from '../../services/tvShowService';
+import type { CastMember } from '../../types/cast';
 import type { TvShowDetails as TvShowDetailsType } from '../../types/tvShow';
 import { formatDate } from '../../utils/formatDate';
 
@@ -23,6 +25,7 @@ export function TvShowDetails() {
   const { isAuthenticated, session } = useAuth();
 
   const [tvShow, setTvShow] = useState<TvShowDetailsType | null>(null);
+  const [cast, setCast] = useState<CastMember[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isReviewsOpen, setIsReviewsOpen] = useState(false);
@@ -50,6 +53,24 @@ export function TvShowDetails() {
     }
 
     loadTvShowDetails();
+  }, [id]);
+
+  useEffect(() => {
+    async function loadTvShowCast() {
+      if (!id) {
+        return;
+      }
+
+      try {
+        const data = await getTvShowCast(id);
+
+        setCast(data);
+      } catch {
+        setCast([]);
+      }
+    }
+
+    loadTvShowCast();
   }, [id]);
 
   function formatEpisodeRuntime(runtime: number[]) {
@@ -212,6 +233,22 @@ export function TvShowDetails() {
               </div>
             </div>
           </div>
+
+          {cast.length > 0 && (
+            <div className="mt-10 border-t border-(--border) pt-8">
+              <h2 className="mb-5 text-center text-xl font-medium text-(--text-primary)">
+                Cast
+              </h2>
+
+              <div className="flex flex-wrap justify-center gap-4">
+                {cast.slice(0, 7).map((castMember) => (
+                  <div key={castMember.id} className="w-30 sm:w-31.25">
+                    <CastCard castMember={castMember} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 

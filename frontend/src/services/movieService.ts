@@ -1,3 +1,4 @@
+import type { CastMember } from '../types/cast';
 import type {
   MovieDetails,
   PopularMoviesResponse,
@@ -31,6 +32,16 @@ export async function getMovieDetails(id: string): Promise<MovieDetails> {
 
   if (!response.ok) {
     throw new Error('Failed to fetch movie details.');
+  }
+
+  return response.json();
+}
+
+export async function getMovieCast(id: string): Promise<CastMember[]> {
+  const response = await fetch(`${API_URL}/movies/${id}/cast`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch movie cast.');
   }
 
   return response.json();

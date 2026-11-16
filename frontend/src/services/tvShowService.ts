@@ -1,3 +1,4 @@
+import type { CastMember } from '../types/cast';
 import type {
   TrendingTvShowsResponse,
   TvShowDetails,
@@ -22,6 +23,18 @@ export async function getTvShowDetails(
 
   if (!response.ok) {
     throw new Error('Failed to fetch TV show details.');
+  }
+
+  return response.json();
+}
+
+export async function getTvShowCast(
+  id: string,
+): Promise<CastMember[]> {
+  const response = await fetch(`${API_URL}/tv-shows/${id}/cast`);
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch TV show cast.');
   }
 
   return response.json();
