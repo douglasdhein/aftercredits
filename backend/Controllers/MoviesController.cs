@@ -38,6 +38,19 @@ public class MoviesController : ControllerBase
         return Ok(cast);
     }
 
+    [HttpGet("{id:int}/trailer")]
+    public async Task<IActionResult> GetMovieTrailer(int id)
+    {
+        var trailer = await _tmdbService.GetMovieTrailerAsync(id);
+
+        if (trailer is null)
+        {
+            return NoContent();
+        }
+
+        return Ok(trailer);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetMovieDetails(int id)
     {
@@ -70,7 +83,10 @@ public class MoviesController : ControllerBase
             return BadRequest("Page must be greater than zero.");
         }
 
-        var movies = await _tmdbService.SearchMoviesAsync(query, page);
+        var movies = await _tmdbService.SearchMoviesAsync(
+            query,
+            page
+        );
 
         return Ok(movies);
     }

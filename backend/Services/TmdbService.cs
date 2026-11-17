@@ -187,6 +187,48 @@ public class TmdbService
             .ToList();
     }
 
+    public async Task<VideoDto?> GetMovieTrailerAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"movie/{id}/videos?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var videos =
+            await response.Content.ReadFromJsonAsync<VideosResponseDto>();
+
+        if (videos is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB movie videos response."
+            );
+        }
+
+        return SelectTrailer(videos);
+    }
+
+    public async Task<VideoDto?> GetTvShowTrailerAsync(int id)
+    {
+        var response = await _httpClient.GetAsync(
+            $"tv/{id}/videos?language=en-US"
+        );
+
+        response.EnsureSuccessStatusCode();
+
+        var videos =
+            await response.Content.ReadFromJsonAsync<VideosResponseDto>();
+
+        if (videos is null)
+        {
+            throw new InvalidOperationException(
+                "Unable to read TMDB TV show videos response."
+            );
+        }
+
+        return SelectTrailer(videos);
+    }
+
     public async Task<PopularMoviesResponseDto> GetMoviesAsync(int page)
     {
         var response = await _httpClient.GetAsync(
@@ -279,5 +321,40 @@ public class TmdbService
         }
 
         return tvShows;
+    }
+
+    private static VideoDto? SelectTrailer(
+        VideosResponseDto videos
+    )
+    {
+        var officialTrailer = videos.Results.FirstOrDefault(
+            video =>
+                video.Site.Equals(
+                    "YouTube",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                && video.Type.Equals(
+                    "Trailer",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                && video.Official
+        );
+
+        if (officialTrailer is not null)
+        {
+            return officialTrailer;
+        }
+
+        return videos.Results.FirstOrDefault(
+            video =>
+                video.Site.Equals(
+                    "YouTube",
+                    StringComparison.OrdinalIgnoreCase
+                )
+                && video.Type.Equals(
+                    "Trailer",
+                    StringComparison.OrdinalIgnoreCase
+                )
+        );
     }
 }

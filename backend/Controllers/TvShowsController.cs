@@ -30,6 +30,19 @@ public class TvShowsController : ControllerBase
         return Ok(cast);
     }
 
+    [HttpGet("{id:int}/trailer")]
+    public async Task<IActionResult> GetTvShowTrailer(int id)
+    {
+        var trailer = await _tmdbService.GetTvShowTrailerAsync(id);
+
+        if (trailer is null)
+        {
+            return NoContent();
+        }
+
+        return Ok(trailer);
+    }
+
     [HttpGet("{id:int}")]
     public async Task<IActionResult> GetTvShowDetails(int id)
     {
@@ -62,7 +75,10 @@ public class TvShowsController : ControllerBase
             return BadRequest("Page must be greater than zero.");
         }
 
-        var tvShows = await _tmdbService.SearchTvShowsAsync(query, page);
+        var tvShows = await _tmdbService.SearchTvShowsAsync(
+            query,
+            page
+        );
 
         return Ok(tvShows);
     }
