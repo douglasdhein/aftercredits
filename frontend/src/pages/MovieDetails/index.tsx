@@ -9,7 +9,7 @@ import {
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router';
 import { AlertModal } from '../../components/AlertModal';
-import { CastCard } from '../../components/CastCard';
+import { CastCarousel } from '../../components/CastCarousel';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
@@ -237,13 +237,7 @@ export function MovieDetails() {
                 Cast
               </h2>
 
-              <div className="flex flex-wrap justify-center gap-4">
-                {cast.slice(0, 7).map((castMember) => (
-                  <div key={castMember.id} className="w-30 sm:w-31.25">
-                    <CastCard castMember={castMember} />
-                  </div>
-                ))}
-              </div>
+              <CastCarousel cast={cast} />
             </div>
           )}
         </div>
