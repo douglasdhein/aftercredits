@@ -4,6 +4,7 @@ import type {
   PopularMoviesResponse,
   TrendingMoviesResponse,
 } from '../types/movie';
+import type { TrailerVideo } from '../types/trailer';
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -42,6 +43,22 @@ export async function getMovieCast(id: string): Promise<CastMember[]> {
 
   if (!response.ok) {
     throw new Error('Failed to fetch movie cast.');
+  }
+
+  return response.json();
+}
+
+export async function getMovieTrailer(
+  id: string,
+): Promise<TrailerVideo | null> {
+  const response = await fetch(`${API_URL}/movies/${id}/trailer`);
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch movie trailer.');
   }
 
   return response.json();

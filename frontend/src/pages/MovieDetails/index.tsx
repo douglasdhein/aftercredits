@@ -12,8 +12,13 @@ import { AlertModal } from '../../components/AlertModal';
 import { CastCarousel } from '../../components/CastCarousel';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
+import { TrailerSection } from '../../components/TrailerSection';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
-import { getMovieCast, getMovieDetails } from '../../services/movieService';
+import {
+  getMovieCast,
+  getMovieDetails,
+  getMovieTrailer,
+} from '../../services/movieService';
 import { getCurrentUserReview } from '../../services/reviewService';
 import type { CastMember } from '../../types/cast';
 import type { MovieDetails as MovieDetailsType } from '../../types/movie';
@@ -205,7 +210,6 @@ export function MovieDetails() {
                   className="inline-flex cursor-pointer items-center gap-2 rounded-lg border border-(--border-strong) px-4 py-2.5 text-sm font-medium text-(--text-primary) transition-colors hover:bg-(--surface-hover) disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Pencil className="h-4 w-4" />
-
                   {isCheckingReview ? 'Checking...' : 'Create review'}
                 </button>
 
@@ -240,6 +244,10 @@ export function MovieDetails() {
               <CastCarousel cast={cast} />
             </div>
           )}
+
+          <TrailerSection
+            loadTrailer={() => getMovieTrailer(String(movie.id))}
+          />
         </div>
       </section>
 

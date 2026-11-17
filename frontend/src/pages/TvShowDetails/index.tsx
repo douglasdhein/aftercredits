@@ -12,9 +12,14 @@ import { AlertModal } from '../../components/AlertModal';
 import { CastCarousel } from '../../components/CastCarousel';
 import { CreateReviewModal } from '../../components/CreateReviewModal';
 import { ReviewsModal } from '../../components/ReviewsModal';
+import { TrailerSection } from '../../components/TrailerSection';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getCurrentUserReview } from '../../services/reviewService';
-import { getTvShowCast, getTvShowDetails } from '../../services/tvShowService';
+import {
+  getTvShowCast,
+  getTvShowDetails,
+  getTvShowTrailer,
+} from '../../services/tvShowService';
 import type { CastMember } from '../../types/cast';
 import type { TvShowDetails as TvShowDetailsType } from '../../types/tvShow';
 import { formatDate } from '../../utils/formatDate';
@@ -243,6 +248,10 @@ export function TvShowDetails() {
               <CastCarousel cast={cast} />
             </div>
           )}
+
+          <TrailerSection
+            loadTrailer={() => getTvShowTrailer(String(tvShow.id))}
+          />
         </div>
       </section>
 

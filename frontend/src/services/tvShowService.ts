@@ -1,4 +1,5 @@
 import type { CastMember } from '../types/cast';
+import type { TrailerVideo } from '../types/trailer';
 import type {
   TrendingTvShowsResponse,
   TvShowDetails,
@@ -35,6 +36,22 @@ export async function getTvShowCast(
 
   if (!response.ok) {
     throw new Error('Failed to fetch TV show cast.');
+  }
+
+  return response.json();
+}
+
+export async function getTvShowTrailer(
+  id: string,
+): Promise<TrailerVideo | null> {
+  const response = await fetch(`${API_URL}/tv-shows/${id}/trailer`);
+
+  if (response.status === 204) {
+    return null;
+  }
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch TV show trailer.');
   }
 
   return response.json();
