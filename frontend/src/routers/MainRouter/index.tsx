@@ -7,6 +7,7 @@ import { Register } from '../../pages/Register';
 import { Search } from '../../pages/Search';
 import { TvShowDetails } from '../../pages/TvShowDetails';
 import { TvShows } from '../../pages/TvShows';
+import { Reviews } from '../../pages/Reviews';
 
 export function MainRouter() {
   return (
@@ -16,6 +17,7 @@ export function MainRouter() {
       <Route path="/movies/:id" element={<MovieDetails />} />
       <Route path="/tv-shows" element={<TvShows />} />
       <Route path="/tv-shows/:id" element={<TvShowDetails />} />
+      <Route path="/reviews" element={<Reviews />} />
       <Route path="/search" element={<Search />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

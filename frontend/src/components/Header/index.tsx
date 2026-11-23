@@ -165,6 +165,10 @@ export function Header() {
             <Link to="/tv-shows" className={navLinkClasses}>
               TV Shows
             </Link>
+
+            <Link to="/reviews" className={navLinkClasses}>
+              Reviews
+            </Link>
           </nav>
 
           <div className="relative flex items-center gap-3">
@@ -274,6 +278,14 @@ export function Header() {
                 <Search className="h-5 w-5" strokeWidth={1.5} />
                 <span>Search</span>
               </button>
+
+              <Link
+                to="/reviews"
+                className={navLinkClasses}
+                onClick={() => setIsMenuOpen(false)}
+              >
+                Reviews
+              </Link>
             </div>
           </nav>
         )}
