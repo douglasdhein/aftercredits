@@ -14,6 +14,8 @@ public class AppDbContext : DbContext
 
     public DbSet<Review> Reviews { get; set; }
 
+    public DbSet<ReviewLike> ReviewLikes { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -52,6 +54,26 @@ public class AppDbContext : DbContext
                 review.UserId,
                 review.MediaId,
                 review.MediaType
+            })
+                .IsUnique();
+        });
+
+        modelBuilder.Entity<ReviewLike>(entity =>
+        {
+            entity.HasOne(reviewLike => reviewLike.Review)
+                .WithMany()
+                .HasForeignKey(reviewLike => reviewLike.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(reviewLike => reviewLike.User)
+                .WithMany()
+                .HasForeignKey(reviewLike => reviewLike.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(reviewLike => new
+            {
+                reviewLike.ReviewId,
+                reviewLike.UserId
             })
                 .IsUnique();
         });

@@ -23,4 +23,8 @@ public class ReviewFeedItemDto
     public DateTime CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
+
+    public int LikesCount { get; set; }
+
+    public bool IsLikedByCurrentUser { get; set; }
 }

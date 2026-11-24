@@ -128,18 +128,21 @@ public class ReviewsController : ControllerBase
 
         int? currentUserId = null;
 
-        if (onlyMine)
+        var userIdValue = User.FindFirstValue(
+            ClaimTypes.NameIdentifier
+        );
+
+        if (
+            User.Identity?.IsAuthenticated == true &&
+            int.TryParse(userIdValue, out var userId)
+        )
         {
-            var userIdValue = User.FindFirstValue(
-                ClaimTypes.NameIdentifier
-            );
-
-            if (!int.TryParse(userIdValue, out var userId))
-            {
-                return Unauthorized();
-            }
-
             currentUserId = userId;
+        }
+
+        if (onlyMine && !currentUserId.HasValue)
+        {
+            return Unauthorized();
         }
 
         var reviewsQuery = _context.Reviews
@@ -153,7 +156,7 @@ public class ReviewsController : ControllerBase
             );
         }
 
-        if (currentUserId.HasValue)
+        if (onlyMine && currentUserId.HasValue)
         {
             reviewsQuery = reviewsQuery.Where(
                 review => review.UserId == currentUserId.Value
@@ -179,7 +182,19 @@ public class ReviewsController : ControllerBase
                 Rating = review.Rating,
                 Content = review.Content,
                 CreatedAt = review.CreatedAt,
-                UpdatedAt = review.UpdatedAt
+                UpdatedAt = review.UpdatedAt,
+
+                LikesCount = _context.ReviewLikes.Count(
+                    reviewLike =>
+                        reviewLike.ReviewId == review.Id
+                ),
+
+                IsLikedByCurrentUser =
+                    currentUserId.HasValue &&
+                    _context.ReviewLikes.Any(reviewLike =>
+                        reviewLike.ReviewId == review.Id &&
+                        reviewLike.UserId == currentUserId.Value
+                    )
             })
             .ToListAsync();
 
