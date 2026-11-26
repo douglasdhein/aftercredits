@@ -10,6 +10,8 @@ export interface ReviewFeedItem {
   content: string;
   createdAt: string;
   updatedAt: string | null;
+  likesCount: number;
+  isLikedByCurrentUser: boolean;
 }
 
 export interface ReviewFeedResponse {

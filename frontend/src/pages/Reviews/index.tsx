@@ -1,8 +1,11 @@
 import { ChevronDown, FileX2, Film, Star, Tv, UserRound } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
+import { Link, useNavigate } from 'react-router';
+import { AlertModal } from '../../components/AlertModal';
+import { ReviewLikeButton } from '../../components/ReviewLikeButton';
 import { useAuth } from '../../contexts/AuthContext/useAuth';
 import { getReviewFeed } from '../../services/reviewFeedService';
+import { likeReview, unlikeReview } from '../../services/reviewLikeService';
 import type {
   ReviewFeedItem,
   ReviewFeedMediaType,
@@ -20,6 +23,7 @@ function formatReviewDate(date: string) {
 }
 
 export function Reviews() {
+  const navigate = useNavigate();
   const { isAuthenticated, session } = useAuth();
 
   const [reviews, setReviews] = useState<ReviewFeedItem[]>([]);
@@ -34,9 +38,16 @@ export function Reviews() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
+  const [likingReviewIds, setLikingReviewIds] = useState<number[]>([]);
+  const [alertMessage, setAlertMessage] = useState('');
+
   const effectiveOnlyMine = onlyMine && isAuthenticated;
 
+  const token = isAuthenticated ? session?.token : undefined;
+
   useEffect(() => {
+    let ignore = false;
+
     async function loadReviews() {
       setIsLoading(true);
       setError('');
@@ -50,13 +61,21 @@ export function Reviews() {
             sort,
             onlyMine: effectiveOnlyMine,
           },
-          effectiveOnlyMine ? session?.token : undefined,
+          token,
         );
+
+        if (ignore) {
+          return;
+        }
 
         setReviews(data.results);
         setTotalPages(data.totalPages);
         setTotalItems(data.totalItems);
       } catch (error) {
+        if (ignore) {
+          return;
+        }
+
         setReviews([]);
         setTotalPages(0);
         setTotalItems(0);
@@ -65,12 +84,18 @@ export function Reviews() {
           error instanceof Error ? error.message : 'Failed to load reviews.',
         );
       } finally {
-        setIsLoading(false);
+        if (!ignore) {
+          setIsLoading(false);
+        }
       }
     }
 
     loadReviews();
-  }, [currentPage, mediaFilter, sort, effectiveOnlyMine, session?.token]);
+
+    return () => {
+      ignore = true;
+    };
+  }, [currentPage, mediaFilter, sort, effectiveOnlyMine, token]);
 
   function handleMediaFilterChange(filter: MediaFilter) {
     setMediaFilter(filter);
@@ -87,269 +112,329 @@ export function Reviews() {
     setCurrentPage(1);
   }
 
+  async function handleToggleLike(review: ReviewFeedItem) {
+    if (!isAuthenticated || !session?.token) {
+      navigate('/login');
+      return;
+    }
+
+    if (likingReviewIds.includes(review.id)) {
+      return;
+    }
+
+    setLikingReviewIds((previousIds) => [...previousIds, review.id]);
+
+    try {
+      const response = review.isLikedByCurrentUser
+        ? await unlikeReview(review.id, session.token)
+        : await likeReview(review.id, session.token);
+
+      setReviews((previousReviews) =>
+        previousReviews.map((previousReview) =>
+          previousReview.id === response.reviewId
+            ? {
+                ...previousReview,
+                likesCount: response.likesCount,
+                isLikedByCurrentUser: response.isLikedByCurrentUser,
+              }
+            : previousReview,
+        ),
+      );
+    } catch (error) {
+      setAlertMessage(
+        error instanceof Error
+          ? error.message
+          : 'Failed to update review like.',
+      );
+    } finally {
+      setLikingReviewIds((previousIds) =>
+        previousIds.filter((reviewId) => reviewId !== review.id),
+      );
+    }
+  }
+
   return (
-    <section className="mx-auto w-full max-w-7xl px-6 py-12">
-      <div>
-        <h1 className="text-3xl font-light text-(--text-primary) md:text-4xl">
-          Reviews
-        </h1>
+    <>
+      <section className="mx-auto w-full max-w-7xl px-6 py-12">
+        <div>
+          <h1 className="text-3xl font-light text-(--text-primary) md:text-4xl">
+            Reviews
+          </h1>
 
-        <p className="mt-3 text-(--text-secondary)">
-          Discover what users are saying about movies and TV shows.
-        </p>
-      </div>
+          <p className="mt-3 text-(--text-secondary)">
+            Discover what users are saying about movies and TV shows.
+          </p>
+        </div>
 
-      <div className="mt-8 rounded-xl border border-(--border) bg-(--surface) p-4 md:p-5">
-        <div className="flex flex-col gap-5">
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => handleOnlyMineChange(false)}
-              className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
-                !effectiveOnlyMine
-                  ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
-                  : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-              }`}
-            >
-              All reviews
-            </button>
-
-            {isAuthenticated && (
-              <button
-                type="button"
-                onClick={() => handleOnlyMineChange(true)}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
-                  effectiveOnlyMine
-                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
-                    : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-                }`}
-              >
-                <UserRound className="h-4 w-4" strokeWidth={1.5} />
-                My reviews
-              </button>
-            )}
-          </div>
-
-          <div className="flex flex-col justify-between gap-4 border-t border-(--border) pt-5 md:flex-row md:items-center">
+        <div className="mt-8 rounded-xl border border-(--border) bg-(--surface) p-4 md:p-5">
+          <div className="flex flex-col gap-5">
             <div className="flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => handleMediaFilterChange('all')}
-                className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
-                  mediaFilter === 'all'
+                onClick={() => handleOnlyMineChange(false)}
+                className={`cursor-pointer rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                  !effectiveOnlyMine
                     ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
                     : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
                 }`}
               >
-                All
+                All reviews
               </button>
 
-              <button
-                type="button"
-                onClick={() => handleMediaFilterChange('movie')}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                  mediaFilter === 'movie'
-                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
-                    : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-                }`}
-              >
-                <Film className="h-4 w-4" strokeWidth={1.5} />
-                Movies
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleMediaFilterChange('tv')}
-                className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
-                  mediaFilter === 'tv'
-                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
-                    : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-                }`}
-              >
-                <Tv className="h-4 w-4" strokeWidth={1.5} />
-                TV Shows
-              </button>
+              {isAuthenticated && (
+                <button
+                  type="button"
+                  onClick={() => handleOnlyMineChange(true)}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-colors ${
+                    effectiveOnlyMine
+                      ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                      : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                  }`}
+                >
+                  <UserRound className="h-4 w-4" strokeWidth={1.5} />
+                  My reviews
+                </button>
+              )}
             </div>
 
-            <div className="flex items-center gap-3">
-              <label
-                htmlFor="review-sort"
-                className="text-sm text-(--text-secondary)"
-              >
-                Sort by
-              </label>
-
-              <div className="relative w-28">
-                <select
-                  id="review-sort"
-                  value={sort}
-                  onChange={(event) =>
-                    handleSortChange(event.target.value as ReviewFeedSort)
-                  }
-                  className="w-full cursor-pointer appearance-none rounded-lg border border-(--border-strong) bg-(--surface-secondary) py-2 pl-3 pr-9 text-center text-sm text-(--text-primary) outline-none"
+            <div className="flex flex-col justify-between gap-4 border-t border-(--border) pt-5 md:flex-row md:items-center">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => handleMediaFilterChange('all')}
+                  className={`cursor-pointer rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    mediaFilter === 'all'
+                      ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                      : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                  }`}
                 >
-                  <option value="newest">Newest</option>
+                  All
+                </button>
 
-                  <option value="oldest">Oldest</option>
-                </select>
+                <button
+                  type="button"
+                  onClick={() => handleMediaFilterChange('movie')}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    mediaFilter === 'movie'
+                      ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                      : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                  }`}
+                >
+                  <Film className="h-4 w-4" strokeWidth={1.5} />
+                  Movies
+                </button>
 
-                <ChevronDown
-                  className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-secondary)"
-                  strokeWidth={1.5}
-                />
+                <button
+                  type="button"
+                  onClick={() => handleMediaFilterChange('tv')}
+                  className={`inline-flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    mediaFilter === 'tv'
+                      ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                      : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                  }`}
+                >
+                  <Tv className="h-4 w-4" strokeWidth={1.5} />
+                  TV Shows
+                </button>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <label
+                  htmlFor="review-sort"
+                  className="text-sm text-(--text-secondary)"
+                >
+                  Sort by
+                </label>
+
+                <div className="relative w-28">
+                  <select
+                    id="review-sort"
+                    value={sort}
+                    onChange={(event) =>
+                      handleSortChange(event.target.value as ReviewFeedSort)
+                    }
+                    className="w-full cursor-pointer appearance-none rounded-lg border border-(--border-strong) bg-(--surface-secondary) py-2 pl-3 pr-9 text-center text-sm text-(--text-primary) outline-none"
+                  >
+                    <option value="newest">Newest</option>
+
+                    <option value="oldest">Oldest</option>
+                  </select>
+
+                  <ChevronDown
+                    className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-(--text-secondary)"
+                    strokeWidth={1.5}
+                  />
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="mt-6 flex items-center justify-between">
-        <p className="text-sm text-(--text-secondary)">
-          {totalItems} {totalItems === 1 ? 'review' : 'reviews'}
-        </p>
-      </div>
-
-      {isLoading && (
-        <div className="py-16 text-center">
-          <p className="text-(--text-secondary)">Loading reviews...</p>
+        <div className="mt-6 flex items-center justify-between">
+          <p className="text-sm text-(--text-secondary)">
+            {totalItems} {totalItems === 1 ? 'review' : 'reviews'}
+          </p>
         </div>
-      )}
 
-      {!isLoading && error && (
-        <div className="mt-6 rounded-xl border border-(--border) bg-(--surface) px-6 py-12 text-center">
-          <p className="text-(--text-secondary)">{error}</p>
-        </div>
-      )}
+        {isLoading && (
+          <div className="py-16 text-center">
+            <p className="text-(--text-secondary)">Loading reviews...</p>
+          </div>
+        )}
 
-      {!isLoading && !error && reviews.length === 0 && (
-        <div className="mt-6 rounded-xl border border-(--border) bg-(--surface) px-6 py-12 text-center">
-          <p className="text-(--text-secondary)">No reviews found.</p>
-        </div>
-      )}
+        {!isLoading && error && (
+          <div className="mt-6 rounded-xl border border-(--border) bg-(--surface) px-6 py-12 text-center">
+            <p className="text-(--text-secondary)">{error}</p>
+          </div>
+        )}
 
-      {!isLoading && !error && reviews.length > 0 && (
-        <div className="mt-6 flex flex-col gap-4">
-          {reviews.map((review) => {
-            const posterUrl = review.posterPath
-              ? `https://image.tmdb.org/t/p/w200${review.posterPath}`
-              : null;
+        {!isLoading && !error && reviews.length === 0 && (
+          <div className="mt-6 rounded-xl border border-(--border) bg-(--surface) px-6 py-12 text-center">
+            <p className="text-(--text-secondary)">No reviews found.</p>
+          </div>
+        )}
 
-            const mediaUrl =
-              review.mediaType === 'movie'
-                ? `/movies/${review.mediaId}`
-                : `/tv-shows/${review.mediaId}`;
+        {!isLoading && !error && reviews.length > 0 && (
+          <div className="mt-6 flex flex-col gap-4">
+            {reviews.map((review) => {
+              const posterUrl = review.posterPath
+                ? `https://image.tmdb.org/t/p/w200${review.posterPath}`
+                : null;
 
-            const date = review.updatedAt ?? review.createdAt;
+              const mediaUrl =
+                review.mediaType === 'movie'
+                  ? `/movies/${review.mediaId}`
+                  : `/tv-shows/${review.mediaId}`;
 
-            return (
-              <article
-                key={review.id}
-                className="rounded-xl border border-(--border) bg-(--surface) p-5 md:p-6"
-              >
-                <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
-                  <Link to={mediaUrl} className="w-full shrink-0 sm:w-28">
-                    {posterUrl ? (
-                      <img
-                        src={posterUrl}
-                        alt={review.mediaTitle}
-                        className="aspect-2/3 w-full rounded-lg object-cover"
-                      />
-                    ) : (
-                      <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-(--border) bg-(--surface-secondary)">
-                        <FileX2
-                          className="h-8 w-8 text-(--text-tertiary)"
-                          strokeWidth={1.5}
+              const date = review.updatedAt ?? review.createdAt;
+
+              return (
+                <article
+                  key={review.id}
+                  className="rounded-xl border border-(--border) bg-(--surface) p-5 md:p-6"
+                >
+                  <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
+                    <Link to={mediaUrl} className="w-full shrink-0 sm:w-28">
+                      {posterUrl ? (
+                        <img
+                          src={posterUrl}
+                          alt={review.mediaTitle}
+                          className="aspect-2/3 w-full rounded-lg object-cover"
+                        />
+                      ) : (
+                        <div className="flex aspect-2/3 w-full items-center justify-center rounded-lg border border-(--border) bg-(--surface-secondary)">
+                          <FileX2
+                            className="h-8 w-8 text-(--text-tertiary)"
+                            strokeWidth={1.5}
+                          />
+                        </div>
+                      )}
+                    </Link>
+
+                    <div className="min-w-0 flex-1">
+                      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                        <div className="min-w-0">
+                          <Link
+                            to={mediaUrl}
+                            className="text-lg font-medium text-(--text-primary) transition-colors hover:text-(--rating-text)"
+                          >
+                            {review.mediaTitle}
+                          </Link>
+
+                          <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-(--text-secondary)">
+                            <span>{review.userName}</span>
+
+                            <span>•</span>
+
+                            <span>
+                              {review.mediaType === 'movie'
+                                ? 'Movie'
+                                : 'TV Show'}
+                            </span>
+
+                            <span>•</span>
+
+                            <span>
+                              {review.updatedAt
+                                ? `Edited ${formatReviewDate(date)}`
+                                : formatReviewDate(date)}
+                            </span>
+                          </div>
+                        </div>
+
+                        <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-md border border-(--rating-border) bg-(--rating-background) px-2.5 py-1.5 text-sm font-medium text-(--rating-text)">
+                          <Star className="h-4 w-4" strokeWidth={1.5} />
+                          {review.rating.toFixed(1)}
+                        </span>
+                      </div>
+
+                      <p className="mt-5 whitespace-pre-wrap leading-7 text-(--text-secondary)">
+                        {review.content}
+                      </p>
+
+                      <div className="mt-5 flex flex-wrap items-center gap-3">
+                        <ReviewLikeButton
+                          likesCount={review.likesCount}
+                          isLikedByCurrentUser={review.isLikedByCurrentUser}
+                          isLoading={likingReviewIds.includes(review.id)}
+                          onToggle={() => handleToggleLike(review)}
                         />
                       </div>
-                    )}
-                  </Link>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                      <div className="min-w-0">
-                        <Link
-                          to={mediaUrl}
-                          className="text-lg font-medium text-(--text-primary) transition-colors hover:text-(--rating-text)"
-                        >
-                          {review.mediaTitle}
-                        </Link>
-
-                        <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-(--text-secondary)">
-                          <span>{review.userName}</span>
-
-                          <span>•</span>
-
-                          <span>
-                            {review.mediaType === 'movie' ? 'Movie' : 'TV Show'}
-                          </span>
-
-                          <span>•</span>
-
-                          <span>
-                            {review.updatedAt
-                              ? `Edited ${formatReviewDate(date)}`
-                              : formatReviewDate(date)}
-                          </span>
-                        </div>
-                      </div>
-
-                      <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-md border border-(--rating-border) bg-(--rating-background) px-2.5 py-1.5 text-sm font-medium text-(--rating-text)">
-                        <Star className="h-4 w-4" strokeWidth={1.5} />
-                        {review.rating.toFixed(1)}
-                      </span>
                     </div>
-
-                    <p className="mt-5 whitespace-pre-wrap leading-7 text-(--text-secondary)">
-                      {review.content}
-                    </p>
                   </div>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-      )}
+                </article>
+              );
+            })}
+          </div>
+        )}
 
-      {!isLoading && !error && totalPages > 1 && (
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
-            disabled={currentPage === 1}
-            className="h-10 cursor-pointer rounded-lg border border-(--border-strong) px-4 text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Previous
-          </button>
+        {!isLoading && !error && totalPages > 1 && (
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
+            <button
+              type="button"
+              onClick={() => setCurrentPage((page) => Math.max(1, page - 1))}
+              disabled={currentPage === 1}
+              className="h-10 cursor-pointer rounded-lg border border-(--border-strong) px-4 text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Previous
+            </button>
 
-          {Array.from({ length: totalPages }, (_, index) => index + 1).map(
-            (page) => (
-              <button
-                key={page}
-                type="button"
-                onClick={() => setCurrentPage(page)}
-                className={`h-10 min-w-10 cursor-pointer rounded-lg border px-3 text-sm transition-colors ${
-                  currentPage === page
-                    ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
-                    : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
-                }`}
-              >
-                {page}
-              </button>
-            ),
-          )}
+            {Array.from({ length: totalPages }, (_, index) => index + 1).map(
+              (page) => (
+                <button
+                  key={page}
+                  type="button"
+                  onClick={() => setCurrentPage(page)}
+                  className={`h-10 min-w-10 cursor-pointer rounded-lg border px-3 text-sm transition-colors ${
+                    currentPage === page
+                      ? 'border-(--rating-border) bg-(--rating-background) text-(--rating-text)'
+                      : 'border-(--border-strong) text-(--text-secondary) hover:bg-(--surface-hover) hover:text-(--text-primary)'
+                  }`}
+                >
+                  {page}
+                </button>
+              ),
+            )}
 
-          <button
-            type="button"
-            onClick={() =>
-              setCurrentPage((page) => Math.min(totalPages, page + 1))
-            }
-            disabled={currentPage === totalPages}
-            className="h-10 cursor-pointer rounded-lg border border-(--border-strong) px-4 text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
-          >
-            Next
-          </button>
-        </div>
-      )}
-    </section>
+            <button
+              type="button"
+              onClick={() =>
+                setCurrentPage((page) => Math.min(totalPages, page + 1))
+              }
+              disabled={currentPage === totalPages}
+              className="h-10 cursor-pointer rounded-lg border border-(--border-strong) px-4 text-sm text-(--text-secondary) transition-colors hover:bg-(--surface-hover) hover:text-(--text-primary) disabled:cursor-not-allowed disabled:opacity-40"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </section>
+
+      <AlertModal
+        isOpen={Boolean(alertMessage)}
+        message={alertMessage}
+        onClose={() => setAlertMessage('')}
+      />
+    </>
   );
 }
