@@ -12,6 +12,7 @@ export interface ReviewFeedItem {
   updatedAt: string | null;
   likesCount: number;
   isLikedByCurrentUser: boolean;
+  commentsCount: number;
 }
 
 export interface ReviewFeedResponse {
