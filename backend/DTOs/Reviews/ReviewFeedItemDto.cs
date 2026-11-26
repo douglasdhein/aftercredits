@@ -27,4 +27,6 @@ public class ReviewFeedItemDto
     public int LikesCount { get; set; }
 
     public bool IsLikedByCurrentUser { get; set; }
+
+    public int CommentsCount { get; set; }
 }

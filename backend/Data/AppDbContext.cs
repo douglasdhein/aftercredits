@@ -16,6 +16,8 @@ public class AppDbContext : DbContext
 
     public DbSet<ReviewLike> ReviewLikes { get; set; }
 
+    public DbSet<ReviewComment> ReviewComments { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>(entity =>
@@ -76,6 +78,23 @@ public class AppDbContext : DbContext
                 reviewLike.UserId
             })
                 .IsUnique();
+        });
+
+        modelBuilder.Entity<ReviewComment>(entity =>
+        {
+            entity.Property(reviewComment => reviewComment.Content)
+                .HasMaxLength(500)
+                .IsRequired();
+
+            entity.HasOne(reviewComment => reviewComment.Review)
+                .WithMany()
+                .HasForeignKey(reviewComment => reviewComment.ReviewId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(reviewComment => reviewComment.User)
+                .WithMany()
+                .HasForeignKey(reviewComment => reviewComment.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 }

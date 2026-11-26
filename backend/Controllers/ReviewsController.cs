@@ -194,7 +194,12 @@ public class ReviewsController : ControllerBase
                     _context.ReviewLikes.Any(reviewLike =>
                         reviewLike.ReviewId == review.Id &&
                         reviewLike.UserId == currentUserId.Value
-                    )
+                    ),
+
+                CommentsCount = _context.ReviewComments.Count(
+                    reviewComment =>
+                        reviewComment.ReviewId == review.Id
+                )
             })
             .ToListAsync();
 
