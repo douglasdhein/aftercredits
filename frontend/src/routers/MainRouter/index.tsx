@@ -4,10 +4,11 @@ import { Login } from '../../pages/Login';
 import { MovieDetails } from '../../pages/MovieDetails';
 import { Movies } from '../../pages/Movies';
 import { Register } from '../../pages/Register';
+import { ReviewDetails } from '../../pages/ReviewDetails';
+import { Reviews } from '../../pages/Reviews';
 import { Search } from '../../pages/Search';
 import { TvShowDetails } from '../../pages/TvShowDetails';
 import { TvShows } from '../../pages/TvShows';
-import { Reviews } from '../../pages/Reviews';
 
 export function MainRouter() {
   return (
@@ -18,6 +19,7 @@ export function MainRouter() {
       <Route path="/tv-shows" element={<TvShows />} />
       <Route path="/tv-shows/:id" element={<TvShowDetails />} />
       <Route path="/reviews" element={<Reviews />} />
+      <Route path="/reviews/:id" element={<ReviewDetails />} />
       <Route path="/search" element={<Search />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />

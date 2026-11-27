@@ -1,6 +1,6 @@
 import { FileX2, Star } from 'lucide-react';
-import { useState } from 'react';
-import { Link } from 'react-router';
+import { useEffect, useState } from 'react';
+import { Link, useMatch } from 'react-router';
 import { ReviewCommentButton } from '../ReviewCommentButton';
 import { ReviewCommentsSection } from '../ReviewCommentsSection';
 import { ReviewLikeButton } from '../ReviewLikeButton';
@@ -21,6 +21,7 @@ interface ReviewCardProps {
   onToggleLike: () => void;
   onLogin: () => void;
   onCommentsCountChange: (reviewId: number, commentsCount: number) => void;
+  defaultCommentsExpanded?: boolean;
 }
 
 function formatReviewDate(date: string) {
@@ -39,10 +40,20 @@ export function ReviewCard({
   onToggleLike,
   onLogin,
   onCommentsCountChange,
+  defaultCommentsExpanded = false,
 }: ReviewCardProps) {
-  const [isCommentsExpanded, setIsCommentsExpanded] = useState(false);
+  const isReviewDetailsPage = Boolean(useMatch('/reviews/:id'));
+
+  const [isCommentsExpanded, setIsCommentsExpanded] = useState(
+    defaultCommentsExpanded,
+  );
+
   const [comments, setComments] = useState<ReviewComment[]>([]);
-  const [isLoadingComments, setIsLoadingComments] = useState(false);
+
+  const [isLoadingComments, setIsLoadingComments] = useState(
+    defaultCommentsExpanded,
+  );
+
   const [hasLoadedComments, setHasLoadedComments] = useState(false);
   const [commentsError, setCommentsError] = useState('');
 
@@ -55,26 +66,52 @@ export function ReviewCard({
       ? `/movies/${review.mediaId}`
       : `/tv-shows/${review.mediaId}`;
 
+  const reviewUrl = `/reviews/${review.id}`;
+
   const date = review.updatedAt ?? review.createdAt;
 
-  async function loadComments() {
-    setIsLoadingComments(true);
-    setCommentsError('');
-
-    try {
-      const data = await getReviewComments(review.id);
-
-      setComments(data);
-      setHasLoadedComments(true);
-
-      onCommentsCountChange(review.id, data.length);
-    } catch (error) {
-      setCommentsError(
-        error instanceof Error ? error.message : 'Failed to load comments.',
-      );
-    } finally {
-      setIsLoadingComments(false);
+  useEffect(() => {
+    if (!isLoadingComments) {
+      return;
     }
+
+    let ignore = false;
+
+    getReviewComments(review.id)
+      .then((data) => {
+        if (ignore) {
+          return;
+        }
+
+        setComments(data);
+        setHasLoadedComments(true);
+        setCommentsError('');
+
+        onCommentsCountChange(review.id, data.length);
+      })
+      .catch((error) => {
+        if (ignore) {
+          return;
+        }
+
+        setCommentsError(
+          error instanceof Error ? error.message : 'Failed to load comments.',
+        );
+      })
+      .finally(() => {
+        if (!ignore) {
+          setIsLoadingComments(false);
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, [review.id, isLoadingComments, onCommentsCountChange]);
+
+  function requestComments() {
+    setCommentsError('');
+    setIsLoadingComments(true);
   }
 
   function handleToggleComments() {
@@ -86,7 +123,7 @@ export function ReviewCard({
     setIsCommentsExpanded(true);
 
     if (!hasLoadedComments && !isLoadingComments) {
-      void loadComments();
+      requestComments();
     }
   }
 
@@ -139,6 +176,27 @@ export function ReviewCard({
     onCommentsCountChange(review.id, updatedComments.length);
   }
 
+  const reviewMetadata = (
+    <>
+      <span>{review.userName}</span>
+
+      <span>•</span>
+
+      <span>{review.mediaType === 'movie' ? 'Movie' : 'TV Show'}</span>
+
+      <span>•</span>
+
+      <span>
+        {review.updatedAt
+          ? `Edited ${formatReviewDate(date)}`
+          : formatReviewDate(date)}
+      </span>
+    </>
+  );
+
+  const metadataClasses =
+    'mt-2 flex w-fit flex-wrap items-center gap-2 text-sm text-(--text-secondary)';
+
   return (
     <article className="rounded-xl border border-(--border) bg-(--surface) p-5 md:p-6">
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center">
@@ -169,23 +227,17 @@ export function ReviewCard({
                 {review.mediaTitle}
               </Link>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-(--text-secondary)">
-                <span>{review.userName}</span>
-
-                <span>•</span>
-
-                <span>
-                  {review.mediaType === 'movie' ? 'Movie' : 'TV Show'}
-                </span>
-
-                <span>•</span>
-
-                <span>
-                  {review.updatedAt
-                    ? `Edited ${formatReviewDate(date)}`
-                    : formatReviewDate(date)}
-                </span>
-              </div>
+              {isReviewDetailsPage ? (
+                <div className={metadataClasses}>{reviewMetadata}</div>
+              ) : (
+                <Link
+                  to={reviewUrl}
+                  title="View review details"
+                  className={`${metadataClasses} transition-colors hover:text-(--rating-text)`}
+                >
+                  {reviewMetadata}
+                </Link>
+              )}
             </div>
 
             <span className="inline-flex w-fit shrink-0 items-center gap-1.5 rounded-md border border-(--rating-border) bg-(--rating-background) px-2.5 py-1.5 text-sm font-medium text-(--rating-text)">
@@ -226,7 +278,7 @@ export function ReviewCard({
             isLoading={isLoadingComments}
             error={commentsError}
             onLogin={onLogin}
-            onRetry={() => void loadComments()}
+            onRetry={requestComments}
             onCreate={handleCreateComment}
             onUpdate={handleUpdateComment}
             onDelete={handleDeleteComment}
